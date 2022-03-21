@@ -1,0 +1,24 @@
+Doctype(html)
+	html
+		head
+			meta(charset="UTF-8")
+			meta(name = "viewport" content = "width=device-width, initial-scale=1.0")
+			<!-- Latest compiled and minified CSS -->
+			link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css")
+			<!-- jQuery library -->
+			script(type = "text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js")
+			<!-- Latest compiled JavaScript -->
+			script(type = "text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js")
+		main
+			h1(class = "text-center") Register Page
+			div(class = "container" style = "background-color: lightcyan")
+				form(action = "/register" method = "POST")
+					br
+					label(for = "username") Username
+					input(class = "form-control" type = "text" id = "username" name = "username" placeholder = "Username" accesskey = "U" required)
+					br
+					label(for = "password") Password
+					input(class = "form-control" type = "password" id = "password" name = "password" placeholder = "Password" accesskey = "P" required)
+					br
+					input(class = "form-control" type = "submit" value = "Submit")
+			p(style="text-align: center;") #{server_response}
