@@ -1,0 +1,41 @@
+body{
+    background-color: #141719;
+}
+h1,h2,h3,h4{
+    color: white;
+}
+
+.functionality-css{
+    margin: 0.5rem;
+    margin-top: 1rem;
+}
+
+.row [class*="col-"]{
+    margin-bottom: -99999px;
+    padding-bottom: 99999px;
+}
+
+.row{
+    overflow: hidden; 
+}
+
+/*----------- Tools section CSS ----------------- */
+.btn-group-vertical button {
+    background-color: #950740; /* Green background */
+    border: 1px solid #950740; /* Green border */
+    color: white; /* White text */
+    cursor: pointer; /* Pointer/hand icon */
+    padding: 10px 24px; /* Some padding */
+    display: block; /* Make the buttons appear below each other */
+    width: 300px;
+    height: 130px;
+}
+
+.btn-group-vertical button:not(:last-child) {
+    border-bottom: none; /* Prevent double borders */
+}
+  
+/* Add a background color on hover */
+.btn-group-vertical button:hover {
+    background-color: #6f2232;
+}
