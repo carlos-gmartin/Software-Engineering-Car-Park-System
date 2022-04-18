@@ -33,6 +33,20 @@ app.use(express.urlencoded({ // encrypts data sent via POST
 	extended: true
 }));
 
+// Send user page:
+app.get('/user', function(req, res) {
+	console.log("user");
+	var fileSend = config.public_folder + '/user/home.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
+// Send admin page
+app.get('/admin', function(req, res) {
+	console.log("user");
+	var fileSend = config.public_folder + '/admin/admin.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
 app.get('/Register', function(req, res) {
 	console.log("Requested /Register site");
 	var fileSend = config.public_folder + '/Register.pug';
