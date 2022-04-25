@@ -5,7 +5,9 @@ const config = require('./config');
 const pug = require('pug');
 const crypto = require('crypto');
 const { body,validationResult } = require('express-validator');
+const bodyParser = require('body-parser');
 const iv = crypto.randomBytes(16);
+var urlencodedParser = bodyParser.urlencoded({extended:false});
 
 function encrypt(text) {
 
@@ -64,6 +66,19 @@ app.get('/Login', function(req, res) {
 	console.log("Requested /Login site");
 	var fileSend = config.public_folder + '/Login.pug';
 	res.send(pug.renderFile(fileSend));
+});
+
+
+//  Send and Receive Bookings
+app.post('/getBookings', urlencodedParser, function(req, res) {
+	var client_response = {
+		x: req.body.x,
+		y: req.body.y
+	}
+	console.log(client_response);
+	res.send({
+		colour: "green"
+	});
 });
 
 app.post('/register', [
