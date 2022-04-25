@@ -11,30 +11,45 @@ var size = 100;
 function setup() {
   var canvas = createCanvas(canvasX, canvasY);
   canvas.parent('grid');
-  frameRate(60);
-  noLoop();
+  frameRate(0.5);
 }
 
 function draw() {
   background(250);
   stroke(0);
-  noFill();
-
   for (let x = 0; x < cols; x++){
     console.log(`the first for loop has executed ${x} times`);
    for (let y = 0; y < rows; y++){
      rect(size * x, size * y, size, size);
+     $.ajax({
+       url: "/getBookings",
+       type: "POST",
+       data: {
+         "x": x,
+         "y": y
+       },
+       dataType: "json",
+       success: function(currentBookings) {
+         console.log(currentBookings.colour)
+         var fillColour = currentBookings.colour
+         fill(fillColour)
+          console.log(currentBookings);
+       },
+       error: function(xhr,status,err) {
+          alert("Error can't connect to server");
+       }
+     });
      text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
+     
     console.log(`the second for loop has executed ${y} times`);
    }
-}
-
+  }
 }
 
 function mousePressed() {
   stroke(0);
   let x = Math.floor(mouseY / size);
   let y = Math.floor(mouseX / size);
-  fill("light-green");
+  fill("blue");
   rect(y * size, x * size, size, size);
 }

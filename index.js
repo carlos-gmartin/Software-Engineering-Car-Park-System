@@ -5,7 +5,9 @@ const config = require('./config');
 const pug = require('pug');
 const crypto = require('crypto');
 const { body,validationResult } = require('express-validator');
+const bodyParser = require('body-parser');
 const iv = crypto.randomBytes(16);
+var urlencodedParser = bodyParser.urlencoded({extended:false});
 
 function encrypt(text) {
 
@@ -33,6 +35,27 @@ app.use(express.urlencoded({ // encrypts data sent via POST
 	extended: true
 }));
 
+// Send user page:
+app.get('/user', function(req, res) {
+	console.log("user");
+	var fileSend = config.public_folder + '/user/home.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
+app.get('/user-account', function(req, res) {
+	console.log("user");
+	var fileSend = config.public_folder + '/user/account.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
+// Send admin page
+app.get('/admin', function(req, res) {
+	console.log("user");
+	var fileSend = config.public_folder + '/admin/admin.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
+// Register and login
 app.get('/Register', function(req, res) {
 	console.log("Requested /Register site");
 	var fileSend = config.public_folder + '/Register.pug';
@@ -43,6 +66,19 @@ app.get('/Login', function(req, res) {
 	console.log("Requested /Login site");
 	var fileSend = config.public_folder + '/Login.pug';
 	res.send(pug.renderFile(fileSend));
+});
+
+
+//  Send and Receive Bookings
+app.post('/getBookings', urlencodedParser, function(req, res) {
+	var client_response = {
+		x: req.body.x,
+		y: req.body.y
+	}
+	console.log(client_response);
+	res.send({
+		colour: "green"
+	});
 });
 
 app.post('/register', [
