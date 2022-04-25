@@ -40,6 +40,12 @@ app.get('/user', function(req, res) {
 	res.send(pug.renderFile(fileSend));
 });
 
+app.get('/user-account', function(req, res) {
+	console.log("user");
+	var fileSend = config.public_folder + '/user/account.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
 // Send admin page
 app.get('/admin', function(req, res) {
 	console.log("user");
@@ -47,6 +53,7 @@ app.get('/admin', function(req, res) {
 	res.send(pug.renderFile(fileSend));
 });
 
+// Register and login
 app.get('/Register', function(req, res) {
 	console.log("Requested /Register site");
 	var fileSend = config.public_folder + '/Register.pug';
