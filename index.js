@@ -2,6 +2,7 @@ const express = require('express');
 const app = express(); 
 const fs = require('fs'); 
 const config = require('./config');
+const space = require('./classes/space.js');
 const pug = require('pug');
 const crypto = require('crypto');
 const { body,validationResult } = require('express-validator');
@@ -27,6 +28,30 @@ function decrypt(json) {
     const decrpyted = Buffer.concat([decipher.update(Buffer.from(json.content, 'hex')), decipher.final()]);
 
     return decrpyted.toString();
+}
+
+function appendToFile(fileName, reqJSON)
+{
+	fs.appendFile(fileName, reqJSON, function(err) {
+		if (err) {
+			console.log("Error Writing to File!");
+		} else {
+			//console.log("Success Writing to File!");
+		}
+	});
+}
+
+function createGrid(sizeX, sizeY){
+	// X value
+    for (let indexX = 0; indexX < sizeX; indexX++) {
+		// Y value
+		for (let indexY = 0; indexY < sizeY; indexY++) {
+			var newSpace = new space(indexX, indexY, 10, 10, "false");
+			JSONnewSpace = JSON.stringify(newSpace);
+			JSONnewSpace = JSONnewSpace + '\n';
+			appendToFile('spaceDatabase.json', JSONnewSpace);
+		}
+	}
 }
 
 app.use(express.static(config.public_folder));
@@ -75,11 +100,47 @@ app.post('/getBookings', urlencodedParser, function(req, res) {
 		x: req.body.x,
 		y: req.body.y
 	}
-	console.log(client_response);
-	res.send({
-		colour: "green"
-	});
-});
+	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
+	const lines = spaceData.split(/\r?\n/);
+	lines.forEach((line) => {
+		line = line.replace(/\r?\n|\r/g, "");
+		if (line.length > 2) // Change number if no work
+		{
+			//console.log(line);
+			var JSONline = JSON.parse(line);
+			//console.log(JSONline);
+			//console.log(spaceData);
+			//console.log(req.body.x)
+			//console.log(JSONline.positionX)
+			// console.log('local: ' + req.body.x + "   " + 'server: ' + JSONline.positionX);
+			// console.log(req.body.x + ' === ' + JSONline.positionX);
+			// console.log(req.body.x === JSONline.positionX);
+			if(req.body.x == JSONline.positionX)
+			{
+				//console.log("X Value Correct");
+				if (req.body.y == JSONline.positionY) {
+					//console.log("Y Value Correct");
+					if(JSONline.reserved === "false"){
+						res.send({
+							colour: "grey"
+						});
+					}
+					else if(JSONline.reserved === "true"){
+						console.log("Found true");
+						res.send({
+							colour: "green"
+						});
+					}
+					else if(JSONline.reserved === "event"){
+						console.log("Found white");
+						res.send({
+							colour: "blue"
+						});
+					}
+				}
+			}
+		}
+	})});
 
 app.post('/register', [
 		body('username', 'Includes Code').trim().escape(),
@@ -94,13 +155,7 @@ app.post('/register', [
 			var encryptedData = encrypt(JSON.stringify(req.body));
 			console.log(encryptedData);
 			reqJSON = JSON.stringify(encryptedData) + "\n";	
-			fs.appendFile('database.json', reqJSON, function(err) {
-				if (err) {
-					console.log("Error Writing to File!");
-				} else {
-					console.log("Success Writing to File!");
-				}
-			});
+			appendToFile('database.json', reqJSON);
 			var decryptedData = decrypt(encryptedData);
 			console.log(decryptedData);
 			res.send(pug.renderFile(config.public_folder + '/Register.pug', {
