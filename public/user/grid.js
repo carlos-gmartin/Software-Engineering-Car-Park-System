@@ -53,3 +53,28 @@ function mousePressed() {
   fill("blue");
   rect(y * size, x * size, size, size);
 }
+
+function geolocation() {
+  navigator.geolocation.getCurrentPosition(sendGeolocation);
+}
+
+function sendGeolocation(position) {
+  var GPSFormat = {
+    "Latitude": position.coords.latitude,
+    "Longitude": position.coords.longitude
+  }
+  $.ajax({
+    url: "/GPS",
+    type: "POST",
+    data: GPSFormat,
+    dataType: "json",
+    success: function(returnedStatement) {
+      console.log(returnedStatement);
+    },
+    error: function(xhr, status, err) {
+      alert("Error can't connect to server");
+    }
+  });
+  console.log("Latitude: " + position.coords.latitude);
+  console.log("Longitude: " + position.coords.longitude);
+}

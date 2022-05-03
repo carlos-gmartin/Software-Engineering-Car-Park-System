@@ -75,9 +75,20 @@ app.post('/getBookings', urlencodedParser, function(req, res) {
 		x: req.body.x,
 		y: req.body.y
 	}
-	console.log(client_response);
+	//console.log(client_response);
 	res.send({
 		colour: "green"
+	});
+});
+
+app.post('/GPS', urlencodedParser, function(req, res) {
+	var GPS_Response = {
+		"Latitude": req.body.Latitude,
+		"Longitude": req.body.Longitude
+	}
+	console.log(GPS_Response);
+	res.send({
+		success: "true"
 	});
 });
 
