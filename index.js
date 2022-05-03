@@ -54,6 +54,63 @@ function createGrid(sizeX, sizeY){
 	}
 }
 
+async function login(req, res) {
+	var fileSend = config.public_folder + "/login.pug";
+	console.log(JSON.stringify(req.body));
+	const userData = fs.readFileSync('database.json', 'UTF-8');
+	const lines = userData.split(/\r?\n/);
+	var result;
+	await lines.forEach(async function(line) {
+		line = line.replace(/\r?\n|\r/g, "");
+		if (line.length > 2)
+			{
+				console.log(line);
+				var JSONline = JSON.parse(line);
+				console.log(JSONline);
+				var user = decrypt(JSONline);
+				console.log(user);
+				var JSONuser = JSON.parse(user);
+				var bannedUsers = fs.readFileSync('adminBlacklist.json', 'UTF-8');
+				const bannedUserslines = bannedUsers.split(/\r?\n/);
+				var banned_user;
+				await bannedUserslines.forEach((bannedLine) => {
+					if(req.body.username === bannedLine) {
+						if(banned_user != "true") {
+							res.send(pug.renderFile(fileSend, {
+								server_response: 'Banned User'
+							}));
+							banned_user = "true";
+							result = "true";
+						}
+					}
+				});
+				if(banned_user != "true") {
+					if(req.body.username === JSONuser.username)
+					{
+						console.log("Username Correct!");
+						if (req.body.password === JSONuser.password) {
+							console.log("Password Correct!");
+							res.send(pug.renderFile(fileSend, {
+								server_response: 'Login Successful!'
+							}));
+							result = "true";
+						}
+					}
+				}
+			}
+		});
+	if(result != "true") {
+		res.send(pug.renderFile(fileSend, {
+			server_response: 'Login Unsuccessful!'
+		}));
+	}
+}
+
+function banUser(username) {
+	username = username + "\n";
+	appendToFile('adminBlacklist.json', username);
+}
+
 app.use(express.static(config.public_folder));
 
 app.use(express.urlencoded({ // encrypts data sent via POST
@@ -174,35 +231,7 @@ app.post('/login', [
 		if (!errors.isEmpty()) {
 			console.log(errors);
 		} else {
-			var fileSend = config.public_folder + "/login.pug";
-			console.log(JSON.stringify(req.body));
-			const userData = fs.readFileSync('database.json', 'UTF-8');
-			const lines = userData.split(/\r?\n/);
-			lines.forEach((line) => {
-				line = line.replace(/\r?\n|\r/g, "");
-				if (line.length > 2)
-				{
-					console.log(line);
-					var JSONline = JSON.parse(line);
-					console.log(JSONline);
-					var user = decrypt(JSONline);
-					console.log(user);
-					var JSONuser = JSON.parse(user);
-					if(req.body.username === JSONuser.username)
-					{
-						console.log("Username Correct!");
-						if (req.body.password === JSONuser.password) {
-							console.log("Password Correct!");
-							res.send(pug.renderFile(fileSend, {
-								server_response: 'Login Successful!'
-							}));
-						}
-					}
-				}
-			});
-			res.send(pug.renderFile(fileSend, {
-				server_response: 'Login Unsuccessful!'
-			}));
+			login(req, res);
 			//var decryptedData = decrypt(encryptedData);
 			//console.log(decryptedData);
 			//res.send(pug.renderFile(config.public_folder + '/login.pug', {
@@ -213,5 +242,6 @@ app.post('/login', [
 
 
 app.listen(config.port, function() { 
+	banUser("vgb20dsu");
 	console.log('Express app listening on port ', config.port); 
 }); 
