@@ -152,6 +152,7 @@ app.get('/Login', function(req, res) {
 
 
 //  Send and Receive Bookings
+// create as async function for responses?
 app.post('/getBookings', urlencodedParser, function(req, res) {
 	var client_response = {
 		x: req.body.x,
