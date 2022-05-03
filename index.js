@@ -81,6 +81,7 @@ app.post('/getBookings', urlencodedParser, function(req, res) {
 	});
 });
 
+// GPS Receiver
 app.post('/GPS', urlencodedParser, function(req, res) {
 	var GPS_Response = {
 		"Latitude": req.body.Latitude,
