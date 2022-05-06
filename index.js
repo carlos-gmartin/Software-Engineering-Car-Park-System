@@ -54,9 +54,42 @@ function createGrid(sizeX, sizeY){
 	}
 }
 
-async function login(req, res) {
-	var fileSend = config.public_folder + "/login.pug";
-	console.log(JSON.stringify(req.body));
+async function adminLogin(req, res, fileSend) {
+	var AdminUsers = await fs.readFileSync('adminDatabase.json', 'UTF-8');
+	const AdminUsersLines = AdminUsers.split(/\r?\n/);
+	var admin_login;
+	await AdminUsersLines.forEach(async function(AdminLine) {
+		AdminLine = AdminLine.replace(/\r?\n|\r/g, "");
+		if (AdminLine.length > 2) {
+			//console.log("AdminLine = " +AdminLine);
+			var JSONAdminline = JSON.parse(AdminLine);
+			//console.log("JSONAdminline = " + JSONAdminline);
+			var adminUser = decrypt(JSONAdminline);
+			adminUser = JSON.parse(adminUser);
+			//console.log(adminUser);
+			//console.log("adminUser.username = " + adminUser.username)
+			//console.log("adminUser.password = " + adminUser.password)
+			if(req.body.username === adminUser.username) {
+				//console.log("Admin Username Correct!");
+				if(req.body.password === adminUser.password) {
+					//console.log("Admin Password Correct!");
+					//console.log("Admin Login Successful!");
+					//console.log("admin_login = " + admin_login);
+					if (admin_login != "true") {
+						admin_login = "true";
+						//console.log("admin_login = " + admin_login);
+						var fileSend = config.public_folder + "/admin/admin.pug";
+						res.send(pug.renderFile(fileSend));
+					}
+				}
+			}
+		}
+		
+	});
+	return admin_login;
+}
+
+async function userLogin(req, res, fileSend) {
 	const userData = fs.readFileSync('database.json', 'UTF-8');
 	const lines = userData.split(/\r?\n/);
 	var result;
@@ -64,18 +97,20 @@ async function login(req, res) {
 		line = line.replace(/\r?\n|\r/g, "");
 		if (line.length > 2)
 			{
-				console.log(line);
+				//console.log(line);
 				var JSONline = JSON.parse(line);
-				console.log(JSONline);
+				//console.log(JSONline);
 				var user = decrypt(JSONline);
-				console.log(user);
+				//console.log(user);
 				var JSONuser = JSON.parse(user);
 				var bannedUsers = fs.readFileSync('adminBlacklist.json', 'UTF-8');
 				const bannedUserslines = bannedUsers.split(/\r?\n/);
 				var banned_user;
 				await bannedUserslines.forEach((bannedLine) => {
 					if(req.body.username === bannedLine) {
+						//console.log("Found banned user!")
 						if(banned_user != "true") {
+							fileSend = config.public_folder + "/login.pug";
 							res.send(pug.renderFile(fileSend, {
 								server_response: 'Banned User'
 							}));
@@ -87,19 +122,41 @@ async function login(req, res) {
 				if(banned_user != "true") {
 					if(req.body.username === JSONuser.username)
 					{
-						console.log("Username Correct!");
+						//console.log("Username Correct!");
 						if (req.body.password === JSONuser.password) {
-							console.log("Password Correct!");
-							res.send(pug.renderFile(fileSend, {
-								server_response: 'Login Successful!'
-							}));
+							//console.log("Password Correct!");
+							var fileSend = config.public_folder + "/user/home.pug";
+							//res.send(pug.renderFile(fileSend));
+							res.redirect(301, '/user');
 							result = "true";
 						}
 					}
 				}
 			}
-		});
-	if(result != "true") {
+		});	
+		return result;
+	}
+	
+	
+
+async function login(req, res) {
+	var fileSend = config.public_folder + "/login.pug";
+	//console.log(JSON.stringify(req.body));
+	var admin_login = await adminLogin(req, res, fileSend);
+	if(adminLogin != true) {
+		var user_login = await userLogin(req, res, fileSend);
+	}
+	//console.log(admin_login)
+	//console.log(user_login)
+	if((admin_login != "true") && (user_login != "true")) {
+		await loginUnsuccessful(req, res, user_login, admin_login);
+	}	
+}
+
+function loginUnsuccessful(req, res, result, admin_login) {
+	var fileSend = config.public_folder + "/login.pug";
+	if(result != "true" && admin_login != "true") {
+		console.log("Login unsuccessful!");
 		res.send(pug.renderFile(fileSend, {
 			server_response: 'Login Unsuccessful!'
 		}));
@@ -141,6 +198,12 @@ app.get('/admin', function(req, res) {
 app.get('/Register', function(req, res) {
 	console.log("Requested /Register site");
 	var fileSend = config.public_folder + '/Register.pug';
+	res.send(pug.renderFile(fileSend));
+});
+
+app.get('/Admin_Register', function(req, res) {
+	console.log("Requested /Admin_Register site");
+	var fileSend = config.public_folder + '/admin/AdminRegister.pug';
 	res.send(pug.renderFile(fileSend));
 });
 
@@ -223,6 +286,34 @@ app.post('/register', [
 	});
 
 
+app.post('/Admin_Register', [
+	body('username', 'Includes Code').trim().escape(),
+	body('password', 'Includes Code').trim().escape()
+	], function(req, res) {
+		console.log('POSTED Admin_Register');
+		var errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			console.log(errors);
+		} else {
+			console.log(JSON.stringify(req.body));
+			var encryptedData = encrypt(JSON.stringify(req.body));
+			console.log(encryptedData);
+			reqJSON = JSON.stringify(encryptedData) + "\n";	
+			fs.appendFile('adminDatabase.json', reqJSON, function(err) {
+				if (err) {
+					console.log("Error Writing to File!");
+				} else {
+					console.log("Success Writing to File!");
+				}
+			});
+			var decryptedData = decrypt(encryptedData);
+			console.log(decryptedData);
+			res.send(pug.renderFile(config.public_folder + '/Register.pug', {
+				server_response: 'Admin Registration Successful!'
+			}));
+		}
+	});
+
 app.post('/login', [
 		//body('username', 'Includes Code').trim().escape(),
 		//body('password', 'Includes Code').trim().escape()
@@ -243,6 +334,5 @@ app.post('/login', [
 
 
 app.listen(config.port, function() { 
-	banUser("vgb20dsu");
 	console.log('Express app listening on port ', config.port); 
 }); 
