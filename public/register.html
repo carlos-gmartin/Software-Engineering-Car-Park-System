@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<link rel="stylesheet" href="style/style.css">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>UEA PARKING MANAGEMENT (ADMINISTRATOR)</title>
+	</head>
+
+	<body>
+
+		<nav class="navbar navbar-expand-lg navbar-dark navbar-color ">
+		  <a class="navbar-brand" href="#">UEAPM</a>
+		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		  </button>
+		  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav mr-auto">
+			  <li class="nav-item active">
+				<a class="nav-link" href="#">Requests<span class="sr-only">(current)</span></a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="#">Users</a>
+			  </li>
+			  <li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Car Parks
+				</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<a class="dropdown-item" href="#">Action</a>
+					<a class="dropdown-item" href="#">Another action</a>
+					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" href="#">Something else here</a>
+				</div>
+			  </li>
+			</ul>
+		  </div>
+		</nav>
+
+    <main class = "text-white">
+
+      <div class="row d-flex justify-content-center text-center">
+
+		<form class = "w-50  col-md-6" action="/login" method="POST">
+
+          <h1>REGISTER</h1>
+          
+          <div class="form-outline mb-4">
+            <label for="username">Username</label>
+            <input class="form-control" type="text" id="username" name="username" placeholder="Username" accesskey="U" required="required" />
+          </div>
+    
+          <div class="form-outline mb-4">
+            <label for="password">Password</label>
+            <input class="form-control" type="password" id="password" name="password" placeholder="Password" accesskey="P" required="required" />
+          </div>
+    
+          <button type="button" class="btn btn-outline-primary mb-4">Register</button>
+    
+          <div>
+            <p>Already a member? <a href="#!">Log In</a></p>
+          </div>
+        </form>
+      </div>
+	</main>
+		
+	<nav class="navbar fixed-bottom navbar-dark justify-content-center navbar-color">
+		<a class="navbar-brand" href="#">Copyright ©2020 A1 UEA PARKING MANAGEMENT. For more information on our project, click here: <a href ="OurTeam.html">Group A1</a></a>
+	</nav>
+	</body>
+</html>

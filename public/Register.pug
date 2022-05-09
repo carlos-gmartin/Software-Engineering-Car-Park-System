@@ -1,24 +1,63 @@
-Doctype(html)
-	html
-		head
-			meta(charset="UTF-8")
-			meta(name = "viewport" content = "width=device-width, initial-scale=1.0")
-			<!-- Latest compiled and minified CSS -->
-			link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css")
-			<!-- jQuery library -->
-			script(type = "text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js")
-			<!-- Latest compiled JavaScript -->
-			script(type = "text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js")
-		main
-			h1(class = "text-center") Register Page
-			div(class = "container" style = "background-color: lightcyan")
-				form(action = "/register" method = "POST")
-					br
-					label(for = "username") Username
-					input(class = "form-control" type = "text" id = "username" name = "username" placeholder = "Username" accesskey = "U" required)
-					br
-					label(for = "password") Password
-					input(class = "form-control" type = "password" id = "password" name = "password" placeholder = "Password" accesskey = "P" required)
-					br
-					input(class = "form-control" type = "submit" value = "Submit")
-			p(style="text-align: center;") #{server_response}
+doctype html
+html(dir='ltr', lang='en')
+  head
+    meta(charset='utf-8')
+    | &#x9;&#x9;
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css', integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T', crossorigin='anonymous')
+    | &#x9;&#x9;
+    link(rel='stylesheet', href='style/style.css')
+    | &#x9;&#x9;
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    | &#x9;&#x9;
+    title UEA PARKING MANAGEMENT (ADMINISTRATOR)
+  | &#x9;
+  body
+    nav.navbar.navbar-expand-lg.navbar-dark.navbar-color
+      a.navbar-brand(href='#') UEAPM
+      | &#x9;&#x9;  
+      button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      | &#x9;&#x9;  
+      #navbarSupportedContent.collapse.navbar-collapse
+        ul.navbar-nav.mr-auto
+          li.nav-item.active
+            a.nav-link(href='#')
+              | Requests
+              span.sr-only (current)
+          | &#x9;&#x9;&#x9;  
+          li.nav-item
+            a.nav-link(href='#') Users
+          | &#x9;&#x9;&#x9;  
+          li.nav-item.dropdown
+            a#navbarDropdown.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+              | Car Parks
+            | &#x9;&#x9;&#x9;&#x9;
+            .dropdown-menu(aria-labelledby='navbarDropdown')
+              a.dropdown-item(href='#') Action
+              | &#x9;&#x9;&#x9;&#x9;&#x9;
+              a.dropdown-item(href='#') Another action
+              | &#x9;&#x9;&#x9;&#x9;&#x9;
+              .dropdown-divider
+              | &#x9;&#x9;&#x9;&#x9;&#x9;
+              a.dropdown-item(href='#') Something else here
+    main.text-white
+      .row.d-flex.justify-content-center.text-center
+        form.w-50.col-md-6(action='/login', method='POST')
+          h1 REGISTER
+          .form-outline.mb-4
+            label(for='username') Username
+            input#username.form-control(type='text', name='username', placeholder='Username', accesskey='U', required='required')
+          .form-outline.mb-4
+            label(for='password') Password
+            input#password.form-control(type='password', name='password', placeholder='Password', accesskey='P', required='required')
+          button.btn.btn-outline-primary.mb-4(type='button') Register
+          div
+            p
+              | Already a member? 
+              a(href='#!') Log In
+    | &#x9;&#x9;
+    | &#x9;
+    nav.navbar.fixed-bottom.navbar-dark.justify-content-center.navbar-color
+      a.navbar-brand(href='#')
+        | Copyright &copy;2020 A1 UEA PARKING MANAGEMENT. For more information on our project, click here:
+      a(href='OurTeam.html') Group A1
