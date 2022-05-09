@@ -1,29 +1,22 @@
-class Space {
-    constructor(positionX, positionY, cost, timing, reserved) {
-        this.positionX = positionX;
-        this.positionY = positionY;
-        this.cost = cost;
-        this.timing = timing;
-        this.reserved = reserved;
+class space {
+    constructor(row, column, cost, timing, reserved){
+        this.row = row;
+        this.column = column;
+        this.occupied = false;
+        this.invisible = false;
+        this.occupant = null;
+        this.event = null;
     }
-    get getCost() {
-        return this.cost;
+
+    occupy(user){
+        this.occupied = true;
+        this.occupant = user;
     }
-    get getTiming() {
-        return this.timing;
+
+    setEvent(event){
+        this.event = event;
     }
-    get getReserved() {
-        return this.reserved;
-    }
-    set setCost(cost){
-        this.cost = cost;
-    }
-    set setTiming(timing){
-        this.timing = timing;
-    }
-    set setReserved(reserved){
-        this.reserved = reserved;
-    }
+
 }
 
-module.exports = Space;
+module.exports = space;
