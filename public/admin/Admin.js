@@ -1,4 +1,4 @@
-class Admin (){
+class Admin{
 
   constructor (username, password, telephoneNumber){
       this.username = username;
@@ -21,7 +21,7 @@ class Admin (){
 
   }
   
-  edit carPark(,car)
+  editcarPark(car)
   {
 		
   }

@@ -7,12 +7,16 @@ const pug = require('pug');
 const crypto = require('crypto');
 const { body,validationResult } = require('express-validator');
 const bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
 const { send } = require('process');
 const iv = crypto.randomBytes(16);
 var urlencodedParser = bodyParser.urlencoded({extended:false});
 
-app.use(cookieParser());
+/*
+*
+*
+*	Code encryption and appending.
+*
+*/
 
 function encrypt(text) {
 
@@ -45,18 +49,11 @@ function appendToFile(fileName, reqJSON)
 	});
 }
 
-function createGrid(sizeX, sizeY){
-	// X value
-    for (let indexX = 0; indexX < sizeX; indexX++) {
-		// Y value
-		for (let indexY = 0; indexY < sizeY; indexY++) {
-			var newSpace = new space(indexX, indexY, 10, 10, "false");
-			JSONnewSpace = JSON.stringify(newSpace);
-			JSONnewSpace = JSONnewSpace + '\n';
-			appendToFile('spaceDatabase.json', JSONnewSpace);
-		}
-	}
-}
+/*
+*
+*	Login and register. Both admin and user.
+*
+*/
 
 async function adminLogin(req, res, fileSend) {
 	var AdminUsers = await fs.readFileSync('adminDatabase.json', 'UTF-8');
@@ -128,11 +125,6 @@ async function userLogin(req, res, fileSend) {
 						//console.log("Username Correct!");
 						if (req.body.password === JSONuser.password) {
 							//console.log("Password Correct!");
-							var userCookie = {
-								username: req.body.username,
-								admin: "false"
-							};
-							res.cookie("userData", userCookie, { httpOnly: true, secure: false });
 							var fileSend = config.public_folder + "/user/home.pug";
 							//res.send(pug.renderFile(fileSend));
 							res.redirect(301, '/user');
@@ -145,8 +137,6 @@ async function userLogin(req, res, fileSend) {
 		return result;
 	}
 	
-	
-
 async function login(req, res) {
 	fileSend = "./Login.pug";
 	//console.log(JSON.stringify(req.body));
@@ -184,34 +174,28 @@ app.use(express.urlencoded({ // encrypts data sent via POST
 
 // Send user page:
 app.get('/user', function(req, res) {
-	console.log("user");
-	//console.log(req.cookies.userData.username);
 	var fileSend = config.public_folder + '/user/home.pug';
 	res.send(pug.renderFile(fileSend));
 });
 
 app.get('/user-account', function(req, res) {
-	console.log("user");
 	var fileSend = config.public_folder + '/user/account.pug';
 	res.send(pug.renderFile(fileSend));
 });
 
 // Send admin page
 app.get('/admin', function(req, res) {
-	console.log("user");
 	var fileSend = config.public_folder + '/admin/admin.pug';
 	res.send(pug.renderFile(fileSend));
 });
 
 // Register and login
 app.get('/Register', function(req, res) {
-	console.log("Requested /Register site");
 	var fileSend = config.public_folder + '/Register.pug';
 	res.send(pug.renderFile(fileSend));
 });
 
 app.get('/Admin_Register', function(req, res) {
-	console.log("Requested /Admin_Register site");
 	var fileSend = config.public_folder + '/admin/AdminRegister.pug';
 	res.send(pug.renderFile(fileSend));
 });
@@ -232,57 +216,124 @@ app.get('/Login', function(req, res) {
 	}
 });
 
-
-//  Send and Receive Bookings
-// create as async function for responses?
-/*
-app.post('/getBookings', urlencodedParser, function(req, res) {
-	var client_response = {
-		x: req.body.x,
-		y: req.body.y
+app.post('/register', [
+	body('username', 'Includes Code').trim().escape(),
+	body('password', 'Includes Code').trim().escape()
+], function(req, res) {
+	console.log('POSTED Register');
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} else {
+		console.log(JSON.stringify(req.body));
+		var encryptedData = encrypt(JSON.stringify(req.body));
+		console.log(encryptedData);
+		reqJSON = JSON.stringify(encryptedData) + "\n";	
+		appendToFile('database.json', reqJSON);
+		var decryptedData = decrypt(encryptedData);
+		console.log(decryptedData);
+		res.send(pug.renderFile(config.public_folder + '/Register.pug', {
+			server_response: 'Registration Successful!'
+		}));
 	}
-	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
-	const lines = spaceData.split(/\r?\n/);
-	lines.forEach((line) => {
-		line = line.replace(/\r?\n|\r/g, "");
-		if (line.length > 2) // Change number if no work
-		{
-			//console.log(line);
-			var JSONline = JSON.parse(line);
-			//console.log(JSONline);
-			//console.log(spaceData);
-			//console.log(req.body.x)
-			//console.log(JSONline.positionX)
-			// console.log('local: ' + req.body.x + "   " + 'server: ' + JSONline.positionX);
-			// console.log(req.body.x + ' === ' + JSONline.positionX);
-			// console.log(req.body.x === JSONline.positionX);
-			if(req.body.x == JSONline.positionX)
-			{
-				//console.log("X Value Correct");
-				if (req.body.y == JSONline.positionY) {
-					//console.log("Y Value Correct");
-					if(JSONline.reserved === "false"){
-						res.send({
-							colour: "grey"
-						});
-					}
-					else if(JSONline.reserved === "true"){
-						console.log("Found true");
-						res.send({
-							colour: "green"
-						});
-					}
-					else if(JSONline.reserved === "event"){
-						console.log("Found white");
-						res.send({
-							colour: "blue"
-						});
-					}
-				}
+});
+
+app.post('/Admin_Register', [
+body('username', 'Includes Code').trim().escape(),
+body('password', 'Includes Code').trim().escape()
+], function(req, res) {
+	console.log('POSTED Admin_Register');
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} else {
+		console.log(JSON.stringify(req.body));
+		var encryptedData = encrypt(JSON.stringify(req.body));
+		console.log(encryptedData);
+		reqJSON = JSON.stringify(encryptedData) + "\n";	
+		fs.appendFile('adminDatabase.json', reqJSON, function(err) {
+			if (err) {
+				console.log("Error Writing to File!");
+			} else {
+				console.log("Success Writing to File!");
 			}
+		});
+		var decryptedData = decrypt(encryptedData);
+		console.log(decryptedData);
+		res.send(pug.renderFile(config.public_folder + '/Register.pug', {
+			server_response: 'Admin Registration Successful!'
+		}));
+	}
+});
+
+app.post('/login', [
+	//body('username', 'Includes Code').trim().escape(),
+	//body('password', 'Includes Code').trim().escape()
+], function(req, res) {
+	console.log('POSTED Login');
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} else {
+		login(req, res);
+		//var decryptedData = decrypt(encryptedData);
+		//console.log(decryptedData);
+		//res.send(pug.renderFile(config.public_folder + '/login.pug', {
+		//	server_response: 'Registration Successful!'
+		//}));
+	}
+});
+
+/*
+*		
+* 	Bookings and sorting.
+*
+*/
+
+// Create server grid
+function createGrid(sizeX, sizeY){
+	// X value
+    for (let indexX = 0; indexX < sizeX; indexX++) {
+		// Y value
+		for (let indexY = 0; indexY < sizeY; indexY++) {
+			var newSpace = new space(indexX, indexY, 10, 10, "false");
+			JSONnewSpace = JSON.stringify(newSpace);
+			JSONnewSpace = JSONnewSpace + '\n';
+			appendToFile('spaceDatabase.json', JSONnewSpace);
 		}
-	})});
-	*/
+	}
+}
+// temporary grid size number. Need to create grid in admin.
+var gridSize = [];
+
+// Create initial grid.
+app.post('/createGridButton', function(req, res){
+	console.log("Created Parking lot successfully");
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} else {
+		console.log(req.body.rowSize);
+		console.log(req.body.colSize);
+
+		gridSize.push(req.body.rowSize);
+		gridSize.push(req.body.colSize);
+		console.log(gridSize);
+
+		createGrid(req.body.rowSize, req.body.colSize);
+		console.log("Created grid: " + req.body.rowSize + "," + req.body.colSize);
+		res.send(gridSize);
+	}
+});
+
+// Send grid size to user interface for generation.
+app.get('/getGridSize', function(req,res){
+	console.log("Sending grid size to grid.js");
+	console.log(gridSize);
+	res.send(JSON.stringify(gridSize));
+});
+
+
 
 app.get('/getBookings', urlencodedParser, function(req, res) {
 	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
@@ -299,10 +350,10 @@ app.get('/getBookings', urlencodedParser, function(req, res) {
 			senderArray.push(3);
 		}
 	});
-	console.log(senderArray);
 	res.send(JSON.stringify(senderArray));
 });
 
+// Sort server grid.
 function sortSpaceDatabase() {
 	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
@@ -337,80 +388,10 @@ function sortSpaceDatabase() {
 		}
 	});
 	senderArray.forEach((JSONObject) => {
-		console.log(JSONObject);
+		// console.log(JSONObject);
 	});	
 	return senderArray;
 };
-	
-
-app.post('/register', [
-		body('username', 'Includes Code').trim().escape(),
-		body('password', 'Includes Code').trim().escape()
-	], function(req, res) {
-		console.log('POSTED Register');
-		var errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			console.log(errors);
-		} else {
-			console.log(JSON.stringify(req.body));
-			var encryptedData = encrypt(JSON.stringify(req.body));
-			console.log(encryptedData);
-			reqJSON = JSON.stringify(encryptedData) + "\n";	
-			appendToFile('database.json', reqJSON);
-			var decryptedData = decrypt(encryptedData);
-			console.log(decryptedData);
-			res.send(pug.renderFile(config.public_folder + '/Register.pug', {
-				server_response: 'Registration Successful!'
-			}));
-		}
-	});
-
-
-app.post('/Admin_Register', [
-	body('username', 'Includes Code').trim().escape(),
-	body('password', 'Includes Code').trim().escape()
-	], function(req, res) {
-		console.log('POSTED Admin_Register');
-		var errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			console.log(errors);
-		} else {
-			console.log(JSON.stringify(req.body));
-			var encryptedData = encrypt(JSON.stringify(req.body));
-			console.log(encryptedData);
-			reqJSON = JSON.stringify(encryptedData) + "\n";	
-			fs.appendFile('adminDatabase.json', reqJSON, function(err) {
-				if (err) {
-					console.log("Error Writing to File!");
-				} else {
-					console.log("Success Writing to File!");
-				}
-			});
-			var decryptedData = decrypt(encryptedData);
-			console.log(decryptedData);
-			res.send(pug.renderFile(config.public_folder + '/Register.pug', {
-				server_response: 'Admin Registration Successful!'
-			}));
-		}
-	});
-
-app.post('/login', [
-		//body('username', 'Includes Code').trim().escape(),
-		//body('password', 'Includes Code').trim().escape()
-	], function(req, res) {
-		console.log('POSTED Login');
-		var errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			console.log(errors);
-		} else {
-			login(req, res);
-			//var decryptedData = decrypt(encryptedData);
-			//console.log(decryptedData);
-			//res.send(pug.renderFile(config.public_folder + '/login.pug', {
-			//	server_response: 'Registration Successful!'
-			//}));
-		}
-	});
 
 
 app.listen(config.port, function() { 
