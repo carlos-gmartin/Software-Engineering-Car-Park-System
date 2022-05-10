@@ -7,8 +7,12 @@ const pug = require('pug');
 const crypto = require('crypto');
 const { body,validationResult } = require('express-validator');
 const bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+const { send } = require('process');
 const iv = crypto.randomBytes(16);
 var urlencodedParser = bodyParser.urlencoded({extended:false});
+
+app.use(cookieParser());
 
 function encrypt(text) {
 
@@ -110,7 +114,6 @@ async function userLogin(req, res, fileSend) {
 					if(req.body.username === bannedLine) {
 						//console.log("Found banned user!")
 						if(banned_user != "true") {
-							fileSend = config.public_folder + "/login.pug";
 							res.send(pug.renderFile(fileSend, {
 								server_response: 'Banned User'
 							}));
@@ -125,6 +128,11 @@ async function userLogin(req, res, fileSend) {
 						//console.log("Username Correct!");
 						if (req.body.password === JSONuser.password) {
 							//console.log("Password Correct!");
+							var userCookie = {
+								username: req.body.username,
+								admin: "false"
+							};
+							res.cookie("userData", userCookie, { httpOnly: true, secure: false });
 							var fileSend = config.public_folder + "/user/home.pug";
 							//res.send(pug.renderFile(fileSend));
 							res.redirect(301, '/user');
@@ -140,7 +148,7 @@ async function userLogin(req, res, fileSend) {
 	
 
 async function login(req, res) {
-	var fileSend = config.public_folder + "/login.pug";
+	fileSend = "./Login.pug";
 	//console.log(JSON.stringify(req.body));
 	var admin_login = await adminLogin(req, res, fileSend);
 	if(adminLogin != true) {
@@ -150,8 +158,8 @@ async function login(req, res) {
 	//console.log(user_login)
 	if((admin_login != "true") && (user_login != "true")) {
 		await loginUnsuccessful(req, res, user_login, admin_login);
-	}	
-}
+	}
+}	
 
 function loginUnsuccessful(req, res, result, admin_login) {
 	var fileSend = config.public_folder + "/login.pug";
@@ -177,6 +185,7 @@ app.use(express.urlencoded({ // encrypts data sent via POST
 // Send user page:
 app.get('/user', function(req, res) {
 	console.log("user");
+	//console.log(req.cookies.userData.username);
 	var fileSend = config.public_folder + '/user/home.pug';
 	res.send(pug.renderFile(fileSend));
 });
@@ -208,14 +217,25 @@ app.get('/Admin_Register', function(req, res) {
 });
 
 app.get('/Login', function(req, res) {
-	console.log("Requested /Login site");
-	var fileSend = config.public_folder + '/Login.pug';
-	res.send(pug.renderFile(fileSend));
+	console.log(res.cookies);
+	if(res.cookies != null) {
+		if(res.cookies.admin == "true") {
+			var fileSend = config.public_folder + "/admin/admin.pug";
+			res.send(pug.renderFile(fileSend));
+		} else {
+			res.redirect(301, '/user');
+		}
+	} else {
+		console.log("Requested /Login site");
+		var fileSend = config.public_folder + '/Login.pug';
+		res.send(pug.renderFile(fileSend));
+	}
 });
 
 
 //  Send and Receive Bookings
 // create as async function for responses?
+/*
 app.post('/getBookings', urlencodedParser, function(req, res) {
 	var client_response = {
 		x: req.body.x,
@@ -262,6 +282,66 @@ app.post('/getBookings', urlencodedParser, function(req, res) {
 			}
 		}
 	})});
+	*/
+
+app.get('/getBookings', urlencodedParser, function(req, res) {
+	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
+	const lines = spaceData.split(/\r?\n/);
+	const senderArray = [];
+	counter = 0;
+	var sortedDatabase = sortSpaceDatabase();
+	sortedDatabase.forEach((line) => {
+		if(line.reserved == "true") {
+			senderArray.push(1);
+		} else if (line.reserved == "false") {
+			senderArray.push(2);
+		} else {
+			senderArray.push(3);
+		}
+	});
+	console.log(senderArray);
+	res.send(JSON.stringify(senderArray));
+});
+
+function sortSpaceDatabase() {
+	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
+	const lines = spaceData.split(/\r?\n/);
+	const senderArray = [];
+	counter = 0;
+	lines.forEach((line) => {
+		line = line.replace(/\r?\n|\r/g, "");
+		if (line.length > 2) // Change number if no work
+		{
+			var JSONline = JSON.parse(line);
+			//console.log(JSONline);
+			senderArray.push(JSONline);
+			//senderArray.forEach((JSONObject) => {
+			//	console.log(JSONObject);
+			//});	
+		}
+	});
+	//senderArray.forEach((JSONObject) => {
+	//	console.log(JSONObject);
+	//});	
+	senderArray.sort((a, b) => {
+		if(a.positionY > b.positionY) {
+			return 1;
+		} else if (a.positionY == b.positionY){
+			if(a.positionX > b.positionX) {
+				return 1;
+			} else {
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	});
+	senderArray.forEach((JSONObject) => {
+		console.log(JSONObject);
+	});	
+	return senderArray;
+};
+	
 
 app.post('/register', [
 		body('username', 'Includes Code').trim().escape(),
