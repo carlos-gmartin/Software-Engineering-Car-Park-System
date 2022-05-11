@@ -1,6 +1,6 @@
 // Canvas size
-var canvasX = 1200;
-var canvasY = 1200;
+var canvasX = 1000;
+var canvasY = 1000;
 
 var rows;
 var cols;
@@ -8,25 +8,33 @@ var cols;
 // Size of each cell
 var cellSize = 100;
 
-function setup() {
+async function setup() {
+  gridSize = await getGridSize();
+  canvasX = 100 * gridSize[0];
+  canvaxY = 100 * gridSize[1];
+  console.log(canvasX);
   var canvas = createCanvas(canvasX, canvasY);
   canvas.parent('grid');
-  getGridSize();
-  rows = 6;
-  cols = 5;
+  console.log(gridSize[0]);
+  rows = gridSize[0];
+  console.log(gridSize[1]);
+  cols = gridSize[1];
   // console.log(gridSize);
   frameRate(20);
 }
 
 function draw() {
+  console.log("Trying to draw!");
   stroke(0);
+  //console.log(rows);
+  //console.log(cols);
   // Ajax request for server database.
   $.ajax({
     url: "/getBookings",
     type: "GET",
     dataType: "json",
     success: function(returnedArray) {
-      // console.log(returnedArray);
+      //console.log(returnedArray);
       var counter = 0;
       for(var y = 0; y < cols; y++) {
         for(var x = 0; x < rows; x++) {
