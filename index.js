@@ -3,11 +3,15 @@ const app = express();
 const fs = require('fs'); 
 const config = require('./config');
 const space = require('./classes/space.js');
+const user = require('./classes/user.js');
+const carPark = require('./classes/CarPark.js');
+const admin = require('./classes/admin.js');
 const pug = require('pug');
 const crypto = require('crypto');
 const { body,validationResult } = require('express-validator');
 const bodyParser = require('body-parser');
 const { send } = require('process');
+const Space = require('./classes/space.js');
 const iv = crypto.randomBytes(16);
 var urlencodedParser = bodyParser.urlencoded({extended:false});
 
@@ -166,6 +170,19 @@ function banUser(username) {
 	appendToFile('adminBlacklist.json', username);
 }
 
+function testUserClass() {
+	var testSpace = new Space(1,1,50,0,"false");
+	var testUser = new user("username", "password", 50, "0010101001");
+	var testSpace2 = testUser.bookSpace(testSpace, 50);
+	console.log(testUser.currentLocation);
+	console.log(testSpace.timing);
+}
+
+function testCarParkClass() {
+	var testCarPark = new carPark("Name", 5, 5, 50);
+	console.log(testCarPark.spaceArray);
+}
+
 app.use(express.static(config.public_folder));
 
 app.use(express.urlencoded({ // encrypts data sent via POST
@@ -315,11 +332,15 @@ app.post('/createGridButton', function(req, res){
 	} else {
 		console.log(req.body.rowSize);
 		console.log(req.body.colSize);
+		console.log(req.body.pricing);
 
 		gridSize.push(req.body.rowSize);
 		gridSize.push(req.body.colSize);
 		console.log(gridSize);
-
+		testAdmin = new admin('username', 'password', '01010219129129');
+		var tempCarPark = testAdmin.addCarPark("CarPark1", req.body.rowSize, req.body.colSize, req.body.pricing);
+		reqJSON = JSON.stringify(tempCarPark) + "\n";	
+		appendToFile("CarParkDatabase.json", reqJSON);
 		createGrid(req.body.rowSize, req.body.colSize);
 		console.log("Created grid: " + req.body.rowSize + "," + req.body.colSize);
 		res.send(gridSize);
@@ -331,6 +352,22 @@ app.get('/getGridSize', function(req,res){
 	console.log("Sending grid size to grid.js");
 	console.log(gridSize);
 	res.send(JSON.stringify(gridSize));
+});
+
+app.get('/getCarParkDropdown', function(req, res) {
+	const CarParkData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
+	const lines = CarParkData.split(/\r?\n/);
+	var CarParkArray = [];
+	lines.forEach(function(line) {
+		if(line.length > 2) {
+			line = line.replace(/\r?\n|\r/g, "");
+			console.log(line);
+			var CarParkJSON = JSON.parse(line);
+			CarParkArray.push(CarParkJSON.name);
+		}
+	});
+	console.log(CarParkArray);
+	res.send(JSON.stringify(CarParkArray));
 });
 
 
@@ -395,5 +432,6 @@ function sortSpaceDatabase() {
 
 
 app.listen(config.port, function() { 
+	testCarParkClass();
 	console.log('Express app listening on port ', config.port); 
 }); 

@@ -1,3 +1,5 @@
+getCarParks();
+
 // Canvas size
 var canvasX = 1200;
 var canvasY = 1200;
@@ -57,8 +59,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
         do{
             var rowSize = parseInt(window.prompt("Please enter a desired car park size to be created," + "rows: "), 10);
             var colSize = parseInt(window.prompt("Please enter a desired car park size to be created," + "cols: "), 10);
+            var pricing = parseInt(window.prompt("Please enter the price for the car park spaces," + "price: "), 10);
         }
-        while(isNaN(rowSize) || rowSize > 100 || rowSize < 1 || isNaN(colSize) || colSize > 100 || colSize < 1);
+        while(isNaN(rowSize) || rowSize > 100 || rowSize < 1 || isNaN(colSize) || colSize > 100 || colSize < 1 || isNaN(pricing) || pricing > 100 || pricing < 1);
 
         var result = window.confirm("Are you sure you want to create a car park of size: " + rowSize + "," + colSize);
         if(result == true){
@@ -67,7 +70,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 type: "POST",
                 data: { 
                     rowSize: rowSize,
-                    colSize: colSize
+                    colSize: colSize,
+                    pricing: pricing
                 },
                 dataType: "json",
                 success: function(response) {
@@ -80,3 +84,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
     });
   });
+
+
+//AJAX function for dropdown
+function getCarParks() {
+  $.ajax({
+    url: "/getCarParkDropdown",
+    type: "GET",
+    dataType: "json",
+    success: function(carParks) {
+      //Put html editing code for dropdown in here
+      console.log(carParks);
+    }
+  })
+}
