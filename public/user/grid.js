@@ -8,6 +8,12 @@ var cols;
 // Size of each cell
 var cellSize = 100;
 
+/*
+*
+* Drawing the grid and initial setup for the grid.
+*
+*/
+
 async function setup() {
   gridSize = await getGridSize();
   canvasX = 100 * gridSize[0];
@@ -22,7 +28,6 @@ async function setup() {
   // console.log(gridSize);
   frameRate(20);
 }
-
 function draw() {
   console.log("Trying to draw!");
   stroke(0);
@@ -57,7 +62,6 @@ function draw() {
     }
   })
 }
-
 async function getGridSize(){
   var gridSizeLocal;
   await $.ajax({
@@ -73,10 +77,60 @@ async function getGridSize(){
   return gridSizeLocal;
 }
 
-// function mousePressed() {
-//   stroke(0);
-//   let x = Math.floor(mouseY / size);
-//   let y = Math.floor(mouseX / size);
-//   fill("blue");
-//   rect(y * size, x * size, size, size);
-// }
+/*
+*
+* Buttons list
+*
+*/
+
+
+// // reserve space
+// document.addEventListener("DOMContentLoaded", function(event) { 
+//   document.getElementById('reserve').addEventListener("click", function() {
+//       if(result == true){
+//           $.ajax({
+//               url: "/reserveSpace",
+//               type: "POST",
+//               data: { 
+//                   rowSize: rowSize,
+//                   colSize: colSize,
+//               },
+//               dataType: "json",
+//               success: function(response) {
+//                   alert('Car park created successfully grid of size: ' + response);
+//               }
+//           });
+//       }
+//       else{
+//           alert("Car Park was cancelled.");
+//       }
+//   });
+// });
+
+function mousePressed() {
+  stroke(0);
+  let x = Math.floor(mouseX / cellSize);
+  let y = Math.floor(mouseY / cellSize);
+  fill("blue");
+  rect(y * cellSize, x * cellSize, cellSize, cellSize);
+  console.log("Gathering space locations: " + x + ":" + y);
+  gatherSpace(x, y);
+}
+
+
+function gatherSpace(positionX, positionY){
+  if(positionX > rows || positionY > cols){
+    $.ajax({
+      url: "/gatherSpaceInformation",
+      type: "POST",
+      data: { 
+          rowSize: positionX,
+          colSize: positionY
+      },
+      dataType: "json",
+      success: function(response) {
+        console.log(response);
+      }
+    });
+  }
+}

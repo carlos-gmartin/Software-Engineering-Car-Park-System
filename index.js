@@ -336,13 +336,11 @@ app.post('/createGridButton', function(req, res){
 
 		gridSize.push(req.body.rowSize);
 		gridSize.push(req.body.colSize);
-		console.log(gridSize);
 		testAdmin = new admin('username', 'password', '01010219129129');
 		var tempCarPark = testAdmin.addCarPark("CarPark1", req.body.rowSize, req.body.colSize, req.body.pricing);
 		reqJSON = JSON.stringify(tempCarPark) + "\n";	
 		appendToFile("CarParkDatabase.json", reqJSON);
 		createGrid(req.body.rowSize, req.body.colSize);
-		console.log("Created grid: " + req.body.rowSize + "," + req.body.colSize);
 		res.send(gridSize);
 	}
 });
@@ -366,7 +364,6 @@ app.get('/getCarParkDropdown', function(req, res) {
 			CarParkArray.push(CarParkJSON.name);
 		}
 	});
-	console.log(CarParkArray);
 	res.send(JSON.stringify(CarParkArray));
 });
 
@@ -430,8 +427,45 @@ function sortSpaceDatabase() {
 	return senderArray;
 };
 
+/*
+*
+*	User buttons.
+*
+*/
+
+app.post('/gatherSpaceInformation', function(req, res){
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} 
+	else {
+	// spaceDatabase current file.
+
+	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
+	const lines = spaceData.split(/\r?\n/);
+	const senderData = [];
+	lines.forEach((line) => {
+		line = line.replace(/\r?\n|\r/g, "");
+		if (line.length > 2) // Change number if no work
+		{
+			var JSONline = JSON.parse(line);
+			// Find space in database.
+			if(JSONline.positionX == req.body.positionX && JSONline.positionY == req.body.positionY){
+				console.log("Found space selected: " + req.body.positionX + " " + req.body.positionY);
+				senderData.push(JSONline.positionX);
+				senderData.push(JSONline.positionY);
+				senderData.push(JSONline.cost);
+				senderData.push(JSONline.timing);
+				senderData.push(JSONline.reserved);
+			}
+			res.send(senderData);
+		}
+	});
+	}
+});
+
+
 
 app.listen(config.port, function() { 
-	testCarParkClass();
 	console.log('Express app listening on port ', config.port); 
 }); 
