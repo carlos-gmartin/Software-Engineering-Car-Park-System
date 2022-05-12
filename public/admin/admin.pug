@@ -4,6 +4,10 @@ head
   link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous')
   link(rel='stylesheet' href='style/style.css')
   meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  // Grid js same as USER.
+  script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js')
+  script(src='https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js')
+  script(src='adminGrid.js')
   title UEA PARKING MANAGEMENT (ADMINISTRATOR)
 nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
   a.navbar-brand(href='#') UEAPM
@@ -25,17 +29,19 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
           a.dropdown-item(href='#') Another action
           .dropdown-divider
           a.dropdown-item(href='#') Something else here
+      li.nav-item 
+        button(type='button')#createGrid Add temporary grid(ADD CAR PARK)
     a.text-white Hello, Dan! You are an administrator!
     button.btn.btn-outline-success.my-2.my-sm-0(type='submit') Log Out
 main
-  table.table
+  table.table.text-white
     thead
       tr
         th(scope='col') Request Time
         th(scope='col') Request
         th(scope='col') User
         th(scope='col') Car Park
-        th(scope='col') Response&gt;
+        th(scope='col') Response
     tbody
       tr
         th(scope='row') 21/03/2022 (Today)

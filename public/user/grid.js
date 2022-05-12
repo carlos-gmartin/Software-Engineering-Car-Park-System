@@ -1,55 +1,82 @@
 // Canvas size
-var canvasX = 1200;
-var canvasY = 600;
+var canvasX = 1000;
+var canvasY = 1000;
 
-// Number of columns and rows
-var cols = 12;
-var rows = 6;
-// Size of the overall grid
-var size = 100;
+var rows;
+var cols;
 
-function setup() {
+// Size of each cell
+var cellSize = 100;
+
+async function setup() {
+  gridSize = await getGridSize();
+  canvasX = 100 * gridSize[0];
+  canvaxY = 100 * gridSize[1];
+  console.log(canvasX);
   var canvas = createCanvas(canvasX, canvasY);
   canvas.parent('grid');
-  frameRate(0.5);
+  console.log(gridSize[0]);
+  rows = gridSize[0];
+  console.log(gridSize[1]);
+  cols = gridSize[1];
+  // console.log(gridSize);
+  frameRate(20);
 }
 
 function draw() {
-  background(250);
+  console.log("Trying to draw!");
   stroke(0);
-  for (let x = 0; x < cols; x++){
-    console.log(`the first for loop has executed ${x} times`);
-   for (let y = 0; y < rows; y++){
-     rect(size * x, size * y, size, size);
-     $.ajax({
-       url: "/getBookings",
-       type: "POST",
-       data: {
-         "x": x,
-         "y": y
-       },
-       dataType: "json",
-       success: function(currentBookings) {
-         console.log(currentBookings.colour)
-         var fillColour = currentBookings.colour
-         fill(fillColour)
-          console.log(currentBookings);
-       },
-       error: function(xhr,status,err) {
-          alert("Error can't connect to server");
-       }
-     });
-     text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
-     
-    console.log(`the second for loop has executed ${y} times`);
-   }
-  }
+  //console.log(rows);
+  //console.log(cols);
+  // Ajax request for server database.
+  $.ajax({
+    url: "/getBookings",
+    type: "GET",
+    dataType: "json",
+    success: function(returnedArray) {
+      //console.log(returnedArray);
+      var counter = 0;
+      for(var y = 0; y < cols; y++) {
+        for(var x = 0; x < rows; x++) {
+          if(returnedArray[counter] == 1) {
+            fill("green");
+            rect(cellSize * x, cellSize * y, cellSize, cellSize);
+            text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
+          } else if(returnedArray[counter] == 2) {
+            fill("grey");
+            rect(cellSize * x, cellSize * y, cellSize, cellSize);
+            text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
+          } else {
+            fill("red");
+            rect(cellSize * x, cellSize * y, cellSize, cellSize);
+            text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
+          }
+          counter++;
+        }
+      }
+    }
+  })
 }
 
-function mousePressed() {
-  stroke(0);
-  let x = Math.floor(mouseY / size);
-  let y = Math.floor(mouseX / size);
-  fill("blue");
-  rect(y * size, x * size, size, size);
+async function getGridSize(){
+  var gridSizeLocal;
+  await $.ajax({
+    url: "/getGridSize",
+    type: "GET",
+    dataType: "json",
+    success: function(gridSize) {
+      console.log("Grid sized: " + gridSize);
+      gridSizeLocal = gridSize;     
+    }
+  })
+  console.log(gridSizeLocal);
+  return gridSizeLocal;
 }
+
+// function mousePressed() {
+//   stroke(0);
+//   let x = Math.floor(mouseY / size);
+//   let y = Math.floor(mouseX / size);
+//   fill("blue");
+//   rect(y * size, x * size, size, size);
+// }
