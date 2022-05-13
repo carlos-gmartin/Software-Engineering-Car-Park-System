@@ -26,7 +26,7 @@ async function setup() {
   console.log(gridSize[1]);
   cols = gridSize[1];
   // console.log(gridSize);
-  frameRate(5);
+  frameRate(60);
 }
 
 function draw() {
@@ -47,19 +47,26 @@ function draw() {
           if(returnedArray[counter] == 1) {
             fill("green");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
+            fill("white");
+            text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
           } else if(returnedArray[counter] == 2) {
             fill("grey");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
-          } else {
-            fill("red");
+            fill("white");
+            text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+          } else if (returnedArray[counter] == 3) {
+            fill("black");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            text(`x:${x} y:${y}`, 100 * x + 15, 100 * y + 15);
+            fill("white");
+            text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+          }
+          else{
+            nofill();
           }
           counter++;
         }
       }
+      mouseHover();    
     }
   })
 }
@@ -83,60 +90,57 @@ async function getGridSize(){
 * Buttons list
 *
 */
-
-
-// // reserve space
-// document.addEventListener("DOMContentLoaded", function(event) { 
-//   document.getElementById('reserve').addEventListener("click", function() {
-//       if(result == true){
-//           $.ajax({
-//               url: "/reserveSpace",
-//               type: "POST",
-//               data: { 
-//                   rowSize: rowSize,
-//                   colSize: colSize,
-//               },
-//               dataType: "json",
-//               success: function(response) {
-//                   alert('Car park created successfully grid of size: ' + response);
-//               }
-//           });
-//       }
-//       else{
-//           alert("Car Park was cancelled.");
-//       }
-//   });
-// });
-
-function mousePressed() {
+function mouseClicked(){
 	noFill();
   let x = Math.floor(mouseX / cellSize);
   let y = Math.floor(mouseY / cellSize);
-  fill("#6C5B7B");
+  fill("red");
   rect(x * cellSize, y * cellSize, cellSize, cellSize);
+  text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
   gatherSpace(x, y);
+}
+
+function mouseHover(){
+	noFill();
+  let x = Math.floor(mouseX / cellSize);
+  let y = Math.floor(mouseY / cellSize);
+  if(x < rows && y < cols){
+    if(x >= 0 && y >= 0){
+      fill("#6C5B7B");
+      rect(x * cellSize, y * cellSize, cellSize, cellSize);
+      text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+      gatherSpace(x, y);
+    }
+  }
+}
+
+
+function clickedSpace(){
+
+
+
 }
 
 
 function gatherSpace(positionX, positionY){
-  if(positionX < rows || positionY < cols){
-    $.ajax({
-      url: "/gatherSpaceInformation",
-      type: "POST",
-      data: { 
-          positionX: positionX,
-          positionY: positionY
-      },
-      dataType: "json",
-      success: function(spaceInfo) {
-        var positionX = spaceInfo[0];
-        var positionY = spaceInfo[1];
-        var cost = spaceInfo[2];
-        var timing = spaceInfo[3];
+  $.ajax({
+    url: "/gatherSpaceInformation",
+    type: "POST",
+    data: { 
+        positionX: positionX,
+        positionY: positionY
+    },
+    dataType: "json",
+    success: function(spaceInfo) {
+      var positionX = spaceInfo[0];
+      var positionY = spaceInfo[1];
+      var cost = spaceInfo[2];
+      var timing = spaceInfo[3];
+      if(spaceInfo != null){
         document.getElementById("cost").innerHTML = "Cost: " + cost;
         document.getElementById("timing").innerHTML = "Booking timing: " + timing;
         document.getElementById("location").innerHTML = "Location: " + "Row: " + positionX + " " + "Column: " + positionY;
       }
-    });
-  }
+    }
+  });
 }

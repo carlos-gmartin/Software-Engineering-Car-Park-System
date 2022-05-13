@@ -308,12 +308,12 @@ app.post('/login', [
 */
 
 // Create server grid
-function createGrid(sizeX, sizeY){
+function createGrid(sizeX, sizeY, price){
 	// X value
     for (let indexX = 0; indexX < sizeX; indexX++) {
 		// Y value
 		for (let indexY = 0; indexY < sizeY; indexY++) {
-			var newSpace = new space(indexX, indexY, 10, 10, "false");
+			var newSpace = new space(indexX, indexY, price, "false", "false");
 			JSONnewSpace = JSON.stringify(newSpace);
 			JSONnewSpace = JSONnewSpace + '\n';
 			appendToFile('spaceDatabase.json', JSONnewSpace);
@@ -340,15 +340,13 @@ app.post('/createGridButton', function(req, res){
 		var tempCarPark = testAdmin.addCarPark("CarPark1", req.body.rowSize, req.body.colSize, req.body.pricing);
 		reqJSON = JSON.stringify(tempCarPark) + "\n";	
 		appendToFile("CarParkDatabase.json", reqJSON);
-		createGrid(req.body.rowSize, req.body.colSize);
+		createGrid(req.body.rowSize, req.body.colSize, req.body.pricing);
 		res.send(gridSize);
 	}
 });
 
 // Send grid size to user interface for generation.
 app.get('/getGridSize', function(req,res){
-	console.log("Sending grid size to grid.js");
-	console.log(gridSize);
 	res.send(JSON.stringify(gridSize));
 });
 
@@ -380,8 +378,11 @@ app.get('/getBookings', urlencodedParser, function(req, res) {
 			senderArray.push(1);
 		} else if (line.reserved == "false") {
 			senderArray.push(2);
-		} else {
+		} else if (line.reserved == "road") {
 			senderArray.push(3);
+		}
+		else{
+			senderArray.push(4);
 		}
 	});
 	res.send(JSON.stringify(senderArray));
@@ -433,14 +434,22 @@ function sortSpaceDatabase() {
 *
 */
 
-app.post('/gatherSpaceInformation', function(req, res){
+app.post('/bookSpace', function(req, res){
 	var errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		console.log(errors);
 	} 
 	else {
-	// spaceDatabase current file.
-	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
+
+		
+
+	}
+});
+
+
+
+function findSpace(positionX, positionY, fileName){
+	const spaceData = fs.readFileSync(fileName, 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
 	const senderData = [];
 	lines.forEach((line) => {
@@ -449,9 +458,8 @@ app.post('/gatherSpaceInformation', function(req, res){
 		{
 			var JSONline = JSON.parse(line);
 			// Find space in database.
-			if(req.body.positionX == JSONline.positionX){
-				if(req.body.positionY == JSONline.positionY){
-					console.log("Found space selected: " + JSONline);
+			if(positionX == JSONline.positionX){
+				if(positionY == JSONline.positionY){
 					senderData.push(JSONline.positionX);
 					senderData.push(JSONline.positionY);
 					senderData.push(JSONline.cost);
@@ -461,11 +469,20 @@ app.post('/gatherSpaceInformation', function(req, res){
 			}
 		}
 	});
-	res.send(JSON.stringify(senderData));
+	return senderData;
+}
+
+app.post('/gatherSpaceInformation', function(req, res){
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} 
+	else {
+	// spaceDatabase current file.
+	var foundSpace = findSpace(req.body.positionX, req.body.positionY, 'spaceDatabase.json');
+	res.send(JSON.stringify(foundSpace));
 	}
 });
-
-
 
 app.listen(config.port, function() { 
 	console.log('Express app listening on port ', config.port); 
