@@ -26,10 +26,11 @@ async function setup() {
   console.log(gridSize[1]);
   cols = gridSize[1];
   // console.log(gridSize);
-  frameRate(20);
+  frameRate(5);
 }
+
 function draw() {
-  console.log("Trying to draw!");
+  //console.log("Trying to draw!");
   stroke(0);
   //console.log(rows);
   //console.log(cols);
@@ -108,28 +109,33 @@ async function getGridSize(){
 // });
 
 function mousePressed() {
-  stroke(0);
+	noFill();
   let x = Math.floor(mouseX / cellSize);
   let y = Math.floor(mouseY / cellSize);
-  fill("blue");
-  rect(y * cellSize, x * cellSize, cellSize, cellSize);
-  console.log("Gathering space locations: " + x + ":" + y);
+  fill("#6C5B7B");
+  rect(x * cellSize, y * cellSize, cellSize, cellSize);
   gatherSpace(x, y);
 }
 
 
 function gatherSpace(positionX, positionY){
-  if(positionX > rows || positionY > cols){
+  if(positionX < rows || positionY < cols){
     $.ajax({
       url: "/gatherSpaceInformation",
       type: "POST",
       data: { 
-          rowSize: positionX,
-          colSize: positionY
+          positionX: positionX,
+          positionY: positionY
       },
       dataType: "json",
-      success: function(response) {
-        console.log(response);
+      success: function(spaceInfo) {
+        var positionX = spaceInfo[0];
+        var positionY = spaceInfo[1];
+        var cost = spaceInfo[2];
+        var timing = spaceInfo[3];
+        document.getElementById("cost").innerHTML = "Cost: " + cost;
+        document.getElementById("timing").innerHTML = "Booking timing: " + timing;
+        document.getElementById("location").innerHTML = "Location: " + "Row: " + positionX + " " + "Column: " + positionY;
       }
     });
   }

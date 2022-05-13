@@ -359,7 +359,7 @@ app.get('/getCarParkDropdown', function(req, res) {
 	lines.forEach(function(line) {
 		if(line.length > 2) {
 			line = line.replace(/\r?\n|\r/g, "");
-			console.log(line);
+			// console.log(line);
 			var CarParkJSON = JSON.parse(line);
 			CarParkArray.push(CarParkJSON.name);
 		}
@@ -440,7 +440,6 @@ app.post('/gatherSpaceInformation', function(req, res){
 	} 
 	else {
 	// spaceDatabase current file.
-
 	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
 	const senderData = [];
@@ -450,17 +449,19 @@ app.post('/gatherSpaceInformation', function(req, res){
 		{
 			var JSONline = JSON.parse(line);
 			// Find space in database.
-			if(JSONline.positionX == req.body.positionX && JSONline.positionY == req.body.positionY){
-				console.log("Found space selected: " + req.body.positionX + " " + req.body.positionY);
-				senderData.push(JSONline.positionX);
-				senderData.push(JSONline.positionY);
-				senderData.push(JSONline.cost);
-				senderData.push(JSONline.timing);
-				senderData.push(JSONline.reserved);
+			if(req.body.positionX == JSONline.positionX){
+				if(req.body.positionY == JSONline.positionY){
+					console.log("Found space selected: " + JSONline);
+					senderData.push(JSONline.positionX);
+					senderData.push(JSONline.positionY);
+					senderData.push(JSONline.cost);
+					senderData.push(JSONline.timing);
+					senderData.push(JSONline.reserved);
+				}
 			}
-			res.send(senderData);
 		}
 	});
+	res.send(JSON.stringify(senderData));
 	}
 });
 
