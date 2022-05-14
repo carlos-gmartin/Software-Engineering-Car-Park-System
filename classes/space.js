@@ -1,11 +1,10 @@
 class Space {
-    constructor(positionX, positionY, cost, reserved, selected) {
+    constructor(positionX, positionY, cost, reserved) {
         this.positionX = positionX;
         this.positionY = positionY;
         this.cost = cost;
         this.timing = 0;
         this.reserved = reserved;
-        this.selected = selected;
     }
     get getCost() {
         return this.cost;
@@ -24,9 +23,6 @@ class Space {
     }
     set setReserved(reserved){
         this.reserved = reserved;
-    }
-    set setSelected(selected){
-        this.selected = selected;
     }
 }
 

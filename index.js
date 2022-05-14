@@ -48,7 +48,7 @@ function appendToFile(fileName, reqJSON)
 		if (err) {
 			console.log("Error Writing to File!");
 		} else {
-			//console.log("Success Writing to File!");
+			// console.log("Success Writing to File!");
 		}
 	});
 }
@@ -307,13 +307,18 @@ app.post('/login', [
 *
 */
 
+/*
+*	Grid and car parks.
+*
+*/
+
 // Create server grid
 function createGrid(sizeX, sizeY, price){
 	// X value
     for (let indexX = 0; indexX < sizeX; indexX++) {
 		// Y value
 		for (let indexY = 0; indexY < sizeY; indexY++) {
-			var newSpace = new space(indexX, indexY, price, "false", "false");
+			var newSpace = new space(indexX, indexY, price, "false");
 			JSONnewSpace = JSON.stringify(newSpace);
 			JSONnewSpace = JSONnewSpace + '\n';
 			appendToFile('spaceDatabase.json', JSONnewSpace);
@@ -321,8 +326,6 @@ function createGrid(sizeX, sizeY, price){
 	}
 }
 // temporary grid size number. Need to create grid in admin.
-var gridSize = [];
-
 // Create initial grid.
 app.post('/createGridButton', function(req, res){
 	console.log("Created Parking lot successfully");
@@ -330,10 +333,6 @@ app.post('/createGridButton', function(req, res){
 	if (!errors.isEmpty()) {
 		console.log(errors);
 	} else {
-		console.log(req.body.rowSize);
-		console.log(req.body.colSize);
-		console.log(req.body.pricing);
-
 		gridSize.push(req.body.rowSize);
 		gridSize.push(req.body.colSize);
 		testAdmin = new admin('username', 'password', '01010219129129');
@@ -365,6 +364,12 @@ app.get('/getCarParkDropdown', function(req, res) {
 	res.send(JSON.stringify(CarParkArray));
 });
 
+
+/*
+*
+*	Bookings.	
+*
+*/
 
 
 app.get('/getBookings', urlencodedParser, function(req, res) {
@@ -440,21 +445,55 @@ app.post('/bookSpace', function(req, res){
 		console.log(errors);
 	} 
 	else {
-
+		const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
+		const lines = spaceData.split(/\r?\n/);
+		const senderData = [];
 		
+		// new space array.
+		let newSpaces = [];
 
+		lines.forEach((line) => {
+			line = line.replace(/\r?\n|\r/g, "");
+			if (line.length > 2)
+			{
+				var JSONline = JSON.parse(line);
+				// Find space in database.
+				if(req.body.positionX == JSONline.positionX){
+					if(req.body.positionY == JSONline.positionY){
+						//edit the server file
+						console.log("Before : " + JSONline.reserved);
+						JSONline.reserved = 'true';
+						console.log("After : " + JSONline.reserved);
+
+						// Send the space information back.
+						senderData.push(JSONline.positionX);
+						senderData.push(JSONline.positionY);
+						senderData.push(JSONline.cost);
+						senderData.push(JSONline.timing);
+						senderData.push(JSONline.reserved);
+					}
+				}
+				newSpaces.push(JSONline);
+			}
+		});
+		updatedSpaces = JSON.stringify(newSpaces);
+		console.log(updatedSpaces);
+		fs.writeFile('spaceDatabase.json', updatedSpaces, function(err, result) {
+			console.log("Cleared spaceDatabase");
+			if(err) console.log('error', err);
+		});
+		res.send(JSON.stringify(senderData));
 	}
 });
 
-
-
+// function to return space information.
 function findSpace(positionX, positionY, fileName){
 	const spaceData = fs.readFileSync(fileName, 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
 	const senderData = [];
 	lines.forEach((line) => {
 		line = line.replace(/\r?\n|\r/g, "");
-		if (line.length > 2) // Change number if no work
+		if (line.length > 2)
 		{
 			var JSONline = JSON.parse(line);
 			// Find space in database.
@@ -472,6 +511,7 @@ function findSpace(positionX, positionY, fileName){
 	return senderData;
 }
 
+// Get car park when booking.
 app.post('/gatherSpaceInformation', function(req, res){
 	var errors = validationResult(req);
 	if (!errors.isEmpty()) {

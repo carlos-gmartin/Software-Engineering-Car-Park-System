@@ -1,12 +1,15 @@
 // Canvas size
 var canvasX = 1000;
 var canvasY = 1000;
+var canvas;
 
 var rows;
 var cols;
 
 // Size of each cell
 var cellSize = 100;
+
+var state = 0;
 
 /*
 *
@@ -19,7 +22,7 @@ async function setup() {
   canvasX = 100 * gridSize[0];
   canvaxY = 100 * gridSize[1];
   console.log(canvasX);
-  var canvas = createCanvas(canvasX, canvasY);
+  canvas = createCanvas(canvasX, canvasY);
   canvas.parent('grid');
   console.log(gridSize[0]);
   rows = gridSize[0];
@@ -60,13 +63,10 @@ function draw() {
             fill("white");
             text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
           }
-          else{
-            nofill();
-          }
           counter++;
         }
       }
-      mouseHover();    
+        mouseHover();
     }
   })
 }
@@ -90,15 +90,6 @@ async function getGridSize(){
 * Buttons list
 *
 */
-function mouseClicked(){
-	noFill();
-  let x = Math.floor(mouseX / cellSize);
-  let y = Math.floor(mouseY / cellSize);
-  fill("red");
-  rect(x * cellSize, y * cellSize, cellSize, cellSize);
-  text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
-  gatherSpace(x, y);
-}
 
 function mouseHover(){
 	noFill();
@@ -109,22 +100,92 @@ function mouseHover(){
       fill("#6C5B7B");
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
       text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
-      gatherSpace(x, y);
+
+      var spaceInfo = gatherSpace(x, y, '/gatherSpaceInformation');
+
+      if(spaceInfo != null){
+          
+        var positionX = spaceInfo[0];
+        var positionY = spaceInfo[1];
+        var cost = spaceInfo[2];
+        var timing = spaceInfo[3];
+
+        document.getElementById("cost").innerHTML = "Cost: " + cost;
+        document.getElementById("timing").innerHTML = "Booking timing: " + timing;
+        document.getElementById("location").innerHTML = "Location: " + "Row: " + positionX + " " + "Column: " + positionY;
+      }
     }
   }
 }
 
+/*
 
-function clickedSpace(){
+FIX THE GRID NOT APPEARING...
 
 
+*/
 
+async function updateGrid(){
+  gridSize = await getGridSize();
+  console.log(gridSize[0]);
+  rows = gridSize[0];
+  console.log(gridSize[1]);
+  cols = gridSize[1];
 }
 
 
-function gatherSpace(positionX, positionY){
+// Clicked on the reserve button.
+document.addEventListener("DOMContentLoaded", function(event) { 
+  document.getElementById('reserve').addEventListener("click", function(){ 
+    do{
+      var positionX = parseInt(window.prompt("Please enter position X : "));
+      var positionY = parseInt(window.prompt("Please enter position Y : "));
+    }
+    while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols);
+
+    $.ajax({
+      url: '/gatherSpaceInformation',
+      type: "POST",
+      data: { 
+          positionX: positionX,
+          positionY: positionY
+      },
+      dataType: "json",
+      success: function(spaceInfo) {
+        // Code to check that user has enough balance !!!
+
+        if(spaceInfo[4] == 'false'){
+          var result = window.confirm("Do you want to reserve this space: " + spaceInfo[0] + "," + spaceInfo[1]);
+            if(result == true){
+              $.ajax({
+                url: "/bookSpace",
+                type: "POST",
+                data: { 
+                    positionX: spaceInfo[0],
+                    positionY: spaceInfo[1],
+                },
+                dataType: "json",
+                success: function(response) {
+                    alert("Booked position: " + response[0] + ":" + response[1]);
+
+
+                }
+              });
+            }
+          }
+          else{
+            window.confirm("Cannot book this current space as it has already been booked:" + spaceInfo[0] + "," + spaceInfo[1]);
+          }
+        }
+      });
+    })
+});
+
+
+var space;
+function gatherSpace(positionX, positionY, url){
   $.ajax({
-    url: "/gatherSpaceInformation",
+    url: url,
     type: "POST",
     data: { 
         positionX: positionX,
@@ -132,15 +193,8 @@ function gatherSpace(positionX, positionY){
     },
     dataType: "json",
     success: function(spaceInfo) {
-      var positionX = spaceInfo[0];
-      var positionY = spaceInfo[1];
-      var cost = spaceInfo[2];
-      var timing = spaceInfo[3];
-      if(spaceInfo != null){
-        document.getElementById("cost").innerHTML = "Cost: " + cost;
-        document.getElementById("timing").innerHTML = "Booking timing: " + timing;
-        document.getElementById("location").innerHTML = "Location: " + "Row: " + positionX + " " + "Column: " + positionY;
-      }
+      space = spaceInfo;
     }
   });
+  return space;
 }
