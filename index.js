@@ -326,6 +326,8 @@ function createGrid(sizeX, sizeY, price){
 	}
 }
 // temporary grid size number. Need to create grid in admin.
+var gridSize = [];
+
 // Create initial grid.
 app.post('/createGridButton', function(req, res){
 	console.log("Created Parking lot successfully");

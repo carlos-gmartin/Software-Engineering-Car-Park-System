@@ -125,15 +125,6 @@ FIX THE GRID NOT APPEARING...
 
 */
 
-async function updateGrid(){
-  gridSize = await getGridSize();
-  console.log(gridSize[0]);
-  rows = gridSize[0];
-  console.log(gridSize[1]);
-  cols = gridSize[1];
-}
-
-
 // Clicked on the reserve button.
 document.addEventListener("DOMContentLoaded", function(event) { 
   document.getElementById('reserve').addEventListener("click", function(){ 
@@ -167,8 +158,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 dataType: "json",
                 success: function(response) {
                     alert("Booked position: " + response[0] + ":" + response[1]);
-
-
+                    // Update grid size.
                 }
               });
             }
