@@ -1,24 +1,53 @@
-Doctype(html)
-	html
-		head
-			meta(charset="UTF-8")
-			meta(name = "viewport" content = "width=device-width, initial-scale=1.0")
-			<!-- Latest compiled and minified CSS -->
-			link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css")
-			<!-- jQuery library -->
-			script(type = "text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js")
-			<!-- Latest compiled JavaScript -->
-			script(type = "text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js")
-		main
-			h1(class = "text-center") Login Page
-			div(class = "container" style = "background-color: lightcyan")
-				form(action = "/login" method = "POST")
-					br
-					label(for = "username") Username
-					input(class = "form-control" type = "text" id = "username" name = "username" placeholder = "Username" accesskey = "U" required)
-					br
-					label(for = "password") Password
-					input(class = "form-control" type = "password" id = "password" name = "password" placeholder = "Password" accesskey = "P" required)
-					br
-					input(class = "form-control" type = "submit" value = "Submit")
-			p(style="text-align: center;") #{server_response}
+doctype html
+head
+  meta(charset='utf-8')
+  link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous')
+  link(rel='stylesheet' href='style/style.css')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  title UEA PARKING MANAGEMENT (ADMINISTRATOR)
+nav.navbar.navbar-expand-lg.navbar-dark.navbar-color
+  a.navbar-brand(href='#') UEAPM
+  button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+    span.navbar-toggler-icon
+  #navbarSupportedContent.collapse.navbar-collapse
+    ul.navbar-nav.mr-auto
+      li.nav-item.active
+        a.nav-link(href='#')
+          | Requests
+          span.sr-only (current)
+      li.nav-item
+        a.nav-link(href='#') Users
+      li.nav-item.dropdown
+        a#navbarDropdown.nav-link.dropdown-toggle(href='#' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false')
+          | Car Parks
+        .dropdown-menu(aria-labelledby='navbarDropdown')
+          a.dropdown-item(href='#') Action
+          a.dropdown-item(href='#') Another action
+          .dropdown-divider
+          a.dropdown-item(href='#') Something else here
+main.text-white
+  .row.d-flex.justify-content-center.text-center
+    form.w-50.col-md-6(action='/login' method='POST')
+      h1 LOGIN
+      .form-outline.mb-4
+        label(for='username') Username
+        input#username.form-control(type='text' name='username' placeholder='Username' accesskey='U' required='required')
+      .form-outline.mb-4
+        label(for='password') Password
+        input#password.form-control(type='password' name='password' placeholder='Password' accesskey='P' required='required')
+      .row.mb-4
+        .col.d-flex.justify-content-center
+          .form-check
+            input#form2Example31.form-check-input(type='checkbox' value='' checked='')
+            label.form-check-label(for='form2Example31')  Remember me 
+        .col
+          a(href='#!') Forgot password?
+      button.btn.btn-outline-primary.mb-4(type='submit') Sign in
+      div
+        p
+          | Not a member? 
+          a(href='#!') Register
+nav.navbar.fixed-bottom.navbar-dark.justify-content-center.navbar-color
+  a.navbar-brand(href='#')
+    | Copyright &copy;2020 A1 UEA PARKING MANAGEMENT. For more information on our project, click here: 
+    a(href='OurTeam.html') Group A1

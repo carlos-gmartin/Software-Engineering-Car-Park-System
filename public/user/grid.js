@@ -6,7 +6,7 @@ var rows;
 var cols;
 
 // Size of each cell
-var cellSize = 100;
+var cellSize = 70;
 
 var state = 0;
 
@@ -22,8 +22,8 @@ async function setup(NameOfGrid) {
   NameOfGrid = "Test";
   console.log(NameOfGrid);
   gridSize = await getGridSize(NameOfGrid);
-  canvasX = 100 * gridSize[0];
-  canvaxY = 100 * gridSize[1];
+  canvasX = cellSize * gridSize[0];
+  canvaxY = cellSize * gridSize[1];
   console.log(canvasX);
   var canvas = createCanvas(canvasX, canvasY);
   canvas.parent('grid');
@@ -146,6 +146,10 @@ FIX THE GRID NOT APPEARING...
 
 // Clicked on the reserve button.
 document.addEventListener("DOMContentLoaded", function(event) { 
+
+  // Get currently logged in user balance.
+  gatherBalance();
+
   document.getElementById('reserve').addEventListener("click", function(){ 
     do{
       var positionX = parseInt(window.prompt("Please enter position X : "), 10);
@@ -163,8 +167,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
       },
       dataType: "json",
       success: function(spaceInfo) {
-        console.log(spaceInfo);
+      console.log(spaceInfo);
         // Code to check that user has enough balance !!!
+
+
         console.log(spaceInfo[4]);
         console.log((spaceInfo[4] == 'false') || (spaceInfo[4] == 0));
         if(spaceInfo[4] == 'false' || spaceInfo[4] == 0){
@@ -182,6 +188,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 dataType: "json",
                 success: function(response) {
                     alert("Booked position: " + response[0] + ":" + response[1]);
+                    gatherBalance();
                     // Update grid size.
                 }
               });
@@ -216,6 +223,22 @@ function gatherSpace(positionX, positionY, url){
   return space;
 }
 
+
+function gatherBalance(){
+  var NameOfGrid = "Test";
+  console.log(NameOfGrid);
+  $.ajax({
+    url: "/getBalance",
+    type: "GET",
+    dataType: "json",
+    success: function(balance) {
+      userBalance = balance;
+      document.getElementById("balance").innerHTML = "Balance" + userBalance;
+    }
+  });
+}
+
+
 /*$document.ready(function() {
   $.ajax({
     url: "/getCarParkDropdown",
@@ -230,3 +253,5 @@ function gatherSpace(positionX, positionY, url){
   })
 
 }); */
+
+

@@ -1,4 +1,3 @@
-getCarParks();
 // Canvas size
 var canvasX = 1000;
 var canvasY = 1000;
@@ -11,6 +10,8 @@ var NameOfGrid = "Test";
 
 // Size of each cell
 var cellSize = 100;
+
+getCarParks();
 
 async function setup(gridName) {
   gridName = "Test"
@@ -145,15 +146,21 @@ function getCarParks() {
     type: "GET",
     dataType: "json",
     success: function(carParks) {
-      for (var index = 0; index <= carParks.length; index++){
+      console.log(carParks);
+      for (var index = 0; index < carParks.length; index++){
+        console.log(carParks[index]);
         if(carParks[index] != null) {
-          $('#carParkSelect').append('<option id = "' + carParks[index] + '" value ="' + carParks[index] + '">' + carParks[index] + '</option>');
-          document.getElementById(carParks[index]).addEventListener("click", function() {
-            
-          })
+          $('#carParkSelect').append('<option id = "' + carParks[index] + '" value ="' + carParks[index] + '">' + carParks[index] + '</option>');            
         }
       }
-      console.log(carParks);
     }
   })
 }
+
+$(document).ready(function(){
+  $("carParkSelect").change(function(){
+      var NameOfGrid = $(this).children("option:selected").val();
+      console.log(NameOfGrid);
+  });
+});
+
