@@ -147,6 +147,9 @@ FIX THE GRID NOT APPEARING...
 // Clicked on the reserve button.
 document.addEventListener("DOMContentLoaded", function(event) { 
 
+  document.getElementById("logOut").addEventListener("click", function(){
+    window.location = "/Login";
+  });
   // Get currently logged in user balance.
   gatherBalance();
 
