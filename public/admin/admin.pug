@@ -22,9 +22,9 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
       li.nav-item
         a.nav-link(href='#') Users
       li.nav-item.dropdown
-        a#navbarDropdown.nav-link.dropdown-toggle(href='#' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false')
+        a#navbarDropdown.nav-link.dropdown-toggle.btn(href='#' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false')
           | Car Parks
-        .dropdown-menu(aria-labelledby='navbarDropdown')
+        #carParkSelect.dropdown-menu(aria-labelledby='navbarDropdown')
           a.dropdown-item(href='#') Action
           a.dropdown-item(href='#') Another action
           .dropdown-divider
@@ -86,7 +86,7 @@ main
   
   section
     .col-5
-      .card(style='height: 40rem;')
+      #gridBackground.card(style='height: 70rem; width: 70rem;')
         .card-body
            #admin-grid 
 

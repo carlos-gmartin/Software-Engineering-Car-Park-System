@@ -1,7 +1,6 @@
 // Canvas size
 var canvasX = 1000;
 var canvasY = 1000;
-var canvas;
 
 var rows;
 var cols;
@@ -17,19 +16,23 @@ var state = 0;
 *
 */
 
-async function setup() {
-  gridSize = await getGridSize();
+var NameOfGrid = "Test";
+
+async function setup(NameOfGrid) {
+  NameOfGrid = "Test";
+  console.log(NameOfGrid);
+  gridSize = await getGridSize(NameOfGrid);
   canvasX = 100 * gridSize[0];
   canvaxY = 100 * gridSize[1];
   console.log(canvasX);
-  canvas = createCanvas(canvasX, canvasY);
+  var canvas = createCanvas(canvasX, canvasY);
   canvas.parent('grid');
   console.log(gridSize[0]);
   rows = gridSize[0];
   console.log(gridSize[1]);
   cols = gridSize[1];
   // console.log(gridSize);
-  frameRate(60);
+  frameRate(20);
 }
 
 function draw() {
@@ -38,44 +41,60 @@ function draw() {
   //console.log(rows);
   //console.log(cols);
   // Ajax request for server database.
+  var NameOfGrid = "Test"
   $.ajax({
     url: "/getBookings",
-    type: "GET",
+    type: "POST",
     dataType: "json",
+    data: {
+      name: NameOfGrid
+    },
     success: function(returnedArray) {
       //console.log(returnedArray);
       var counter = 0;
       for(var y = 0; y < cols; y++) {
         for(var x = 0; x < rows; x++) {
+          //console.log(returnedArray);
           if(returnedArray[counter] == 1) {
             fill("green");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            fill("white");
+            //fill("white");
             text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+            //console.log("Making green square!");
           } else if(returnedArray[counter] == 2) {
             fill("grey");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            fill("white");
+            //fill("white");
             text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+            //console.log("Making grey square!");
           } else if (returnedArray[counter] == 3) {
             fill("black");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            fill("white");
+            //fill("white");
             text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+            //console.log("Making black square!");
+          } else {
+            fill("red");
+            rect(cellSize * x, cellSize * y, cellSize, cellSize);
+            text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
+            //console.log("Making red square!");
           }
           counter++;
         }
-      }
         mouseHover();
+      }
     }
   })
 }
-async function getGridSize(){
+async function getGridSize(name){
   var gridSizeLocal;
   await $.ajax({
     url: "/getGridSize",
-    type: "GET",
+    type: "POST",
     dataType: "json",
+    data: {
+      name: name
+    },
     success: function(gridSize) {
       console.log("Grid sized: " + gridSize);
       gridSizeLocal = gridSize;     
@@ -129,29 +148,34 @@ FIX THE GRID NOT APPEARING...
 document.addEventListener("DOMContentLoaded", function(event) { 
   document.getElementById('reserve').addEventListener("click", function(){ 
     do{
-      var positionX = parseInt(window.prompt("Please enter position X : "));
-      var positionY = parseInt(window.prompt("Please enter position Y : "));
+      var positionX = parseInt(window.prompt("Please enter position X : "), 10);
+      var positionY = parseInt(window.prompt("Please enter position Y : "), 10);
     }
     while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols);
-
+    var NameOfGrid = "Test";
     $.ajax({
       url: '/gatherSpaceInformation',
       type: "POST",
       data: { 
+          name: NameOfGrid,
           positionX: positionX,
           positionY: positionY
       },
       dataType: "json",
       success: function(spaceInfo) {
+        console.log(spaceInfo);
         // Code to check that user has enough balance !!!
-
-        if(spaceInfo[4] == 'false'){
+        console.log(spaceInfo[4]);
+        console.log((spaceInfo[4] == 'false') || (spaceInfo[4] == 0));
+        if(spaceInfo[4] == 'false' || spaceInfo[4] == 0){
           var result = window.confirm("Do you want to reserve this space: " + spaceInfo[0] + "," + spaceInfo[1]);
             if(result == true){
+              var NameOfGrid = "Test";
               $.ajax({
                 url: "/bookSpace",
                 type: "POST",
                 data: { 
+                    name: NameOfGrid,
                     positionX: spaceInfo[0],
                     positionY: spaceInfo[1],
                 },
@@ -174,10 +198,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 var space;
 function gatherSpace(positionX, positionY, url){
+  var NameOfGrid = "Test";
+  console.log(NameOfGrid);
   $.ajax({
     url: url,
     type: "POST",
     data: { 
+        name: NameOfGrid,
         positionX: positionX,
         positionY: positionY
     },
@@ -188,3 +215,18 @@ function gatherSpace(positionX, positionY, url){
   });
   return space;
 }
+
+/*$document.ready(function() {
+  $.ajax({
+    url: "/getCarParkDropdown",
+    type: "GET",
+    dataType: "json",
+    success: function(carParks) {
+      for (var index = 0; index <= carParks.length; index++){
+        $('#carParkSelect').append('<option value ="' + data[index] + '">' + data[index] + '</option>');
+      }
+      console.log(carParks);
+    }
+  })
+
+}); */
