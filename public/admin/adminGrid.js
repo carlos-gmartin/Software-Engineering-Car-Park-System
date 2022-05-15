@@ -121,6 +121,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 dataType: "json",
                 success: function(response) {
                     alert('Car park created successfully grid of size: ' + response);
+                    $('#carParkSelect').append('<option id = "' + CarParkName + '" value ="' + CarParkName + '">' + CarParkName + '</option>');
+                    document.getElementById(CarParkName).addEventListener("click", function(event) {
+                      NameOfGrid = event.target.id
+                      setup(NameOfGrid);
+                      console.log(NameOfGrid);
+                    }); 
                 }
             });
         }
