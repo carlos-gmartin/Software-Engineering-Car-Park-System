@@ -8,6 +8,7 @@ head
   // JQuery
   script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js')
   script(src='https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js')
+  script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js")
   script(src='grid.js')
   title Home page
 // Responsive navbar
@@ -17,7 +18,7 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
     button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
       span.navbar-toggler-icon
     #navbarSupportedContent.collapse.navbar-collapse
-      ul.navbar-nav.ms-auto.mb-2.mb-lg-1
+      ul.navbar-nav.ms-auto
         li.nav-item
           a.nav-link.active(aria-current='page' href='#') Home
         li.nav-item
@@ -26,6 +27,10 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
           a.nav-link(href='#') book
         li.nav-item
           a.nav-link(href='#') balance:#MONEY HERE#
+        li.nav-item.dropdown
+        button#dropdownMenuButton.btn.btn-secondary.dropdown-toggle(type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false')
+          | Car Parks
+          .dropdown-menu#carParkSelect(aria-labelledby='dropdownMenuButton')
         #logOut.button.btn.btn-outline-success.my-2.my-sm-0(type='button') Log Out
 // Page content
 .container

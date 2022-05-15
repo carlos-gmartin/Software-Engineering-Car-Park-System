@@ -16,10 +16,12 @@ var state = 0;
 *
 */
 
+getCarParks();
+
 var NameOfGrid = "Test";
 
 async function setup(NameOfGrid) {
-  NameOfGrid = "Test";
+  NameOfGrid = NameOfGrid;
   console.log(NameOfGrid);
   gridSize = await getGridSize(NameOfGrid);
   canvasX = cellSize * gridSize[0];
@@ -41,7 +43,6 @@ function draw() {
   //console.log(rows);
   //console.log(cols);
   // Ajax request for server database.
-  var NameOfGrid = "Test"
   $.ajax({
     url: "/getBookings",
     type: "POST",
@@ -159,7 +160,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
       var positionY = parseInt(window.prompt("Please enter position Y : "), 10);
     }
     while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols);
-    var NameOfGrid = "Test";
     $.ajax({
       url: '/gatherSpaceInformation',
       type: "POST",
@@ -179,7 +179,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         if(spaceInfo[4] == 'false' || spaceInfo[4] == 0){
           var result = window.confirm("Do you want to reserve this space: " + spaceInfo[0] + "," + spaceInfo[1]);
             if(result == true){
-              var NameOfGrid = "Test";
               $.ajax({
                 url: "/bookSpace",
                 type: "POST",
@@ -208,7 +207,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 var space;
 function gatherSpace(positionX, positionY, url){
-  var NameOfGrid = "Test";
   console.log(NameOfGrid);
   $.ajax({
     url: url,
@@ -226,9 +224,39 @@ function gatherSpace(positionX, positionY, url){
   return space;
 }
 
+//AJAX function for dropdown
+function getCarParks() {
+  $.ajax({
+    url: "/getCarParkDropdown",
+    type: "GET",
+    dataType: "json",
+    success: function(carParks) {
+      var CarParksArray = carParks;
+      console.log(carParks);
+      for (var index = 0; index < carParks.length; index++){
+        console.log("CarParks[index] = " + carParks[index]);
+        if(carParks[index] != null) {
+          $('#carParkSelect').append('<option id = "' + carParks[index] + '" value ="' + carParks[index] + '">' + carParks[index] + '</option>');
+          document.getElementById(CarParksArray[index]).addEventListener("click", function(event) {
+            NameOfGrid = event.target.id
+            setup(NameOfGrid);
+            console.log(NameOfGrid);
+          });      
+        }
+      }
+    }
+  })
+}
+
+$(document).ready(function(){
+  $("carParkSelect").change(function(){
+      var NameOfGrid = $(this).children("option:selected").val();
+      console.log(NameOfGrid);
+  });
+});
+
 
 function gatherBalance(){
-  var NameOfGrid = "Test";
   console.log(NameOfGrid);
   $.ajax({
     url: "/getBalance",
