@@ -1,3 +1,4 @@
+//module loading
 const express = require('express'); 
 const app = express(); 
 const fs = require('fs'); 
@@ -25,7 +26,6 @@ app.use(session({
 	saveUninitialized: false
 }));
 
-
 /*
 *
 *
@@ -33,6 +33,7 @@ app.use(session({
 *
 */
 
+//encrypt 
 function encrypt(text) {
 
     const cipher = crypto.createCipheriv('aes-256-cbc', config.key, iv);
@@ -45,6 +46,7 @@ function encrypt(text) {
     };
 };
 
+//decrypt
 function decrypt(json) {
 	const decipher = crypto.createDecipheriv('aes-256-cbc', config.key, Buffer.from(json.iv, 'hex'));
 
@@ -53,6 +55,7 @@ function decrypt(json) {
     return decrpyted.toString();
 }
 
+//add reqJSON to fileName
 function appendToFile(fileName, reqJSON)
 {
 	fs.appendFile(fileName, reqJSON, function(err) {
@@ -108,6 +111,7 @@ async function adminLogin(req, res, fileSend) {
 	return admin_login;
 }
 
+//userLogin
 async function userLogin(req, res, fileSend) {
 	const userData = fs.readFileSync('database.json', 'UTF-8');
 	const lines = userData.split(/\r?\n/);
@@ -158,6 +162,7 @@ async function userLogin(req, res, fileSend) {
 		return result;
 	}
 	
+//login function
 async function login(req, res) {
 	fileSend = "./Login.pug";
 	//console.log(JSON.stringify(req.body));
@@ -172,6 +177,8 @@ async function login(req, res) {
 	}
 }	
 
+
+//unsuccessful login
 function loginUnsuccessful(req, res, result, admin_login) {
 	var fileSend = config.public_folder + "/login.pug";
 	if(result != "true" && admin_login != "true") {
@@ -182,6 +189,7 @@ function loginUnsuccessful(req, res, result, admin_login) {
 	}
 }
 
+// ban user
 function banUser(username) {
 	username = username + "\n";
 	appendToFile('adminBlacklist.json', username);
@@ -202,6 +210,7 @@ function testCarParkClass() {
 
 app.use(express.static(config.public_folder));
 
+
 app.use(express.urlencoded({ // encrypts data sent via POST
 	extended: true
 }));
@@ -215,6 +224,7 @@ app.get('/user', function(req, res) {
 	res.send(pug.renderFile(fileSend));
 });
 
+//Get account page
 app.get('/user-account', function(req, res) {
 	var fileSend = config.public_folder + '/user/account.pug';
 	res.send(pug.renderFile(fileSend));
@@ -232,6 +242,8 @@ app.get('/Register', function(req, res) {
 	res.send(pug.renderFile(fileSend));
 });
 
+
+// Admin Register
 app.get('/Admin_Register', function(req, res) {
 	var fileSend = config.public_folder + '/admin/AdminRegister.pug';
 	res.send(pug.renderFile(fileSend));
@@ -258,6 +270,8 @@ app.get('/Login', function(req, res) {
 	}
 });
 
+//register
+
 app.post('/register', [
 	body('username', 'Includes Code').trim().escape(),
 	body('password', 'Includes Code').trim().escape()
@@ -279,6 +293,8 @@ app.post('/register', [
 		}));
 	}
 });
+
+//admin register
 
 app.post('/Admin_Register', [
 body('username', 'Includes Code').trim().escape(),
@@ -378,6 +394,7 @@ function createGrid(sizeX, sizeY, price){
 		}
 	}
 }
+
 // temporary grid size number. Need to create grid in admin.
 var gridSize = [];
 
@@ -430,6 +447,8 @@ app.post('/getGridSize', urlencodedParser, function(req,res){
 	});
 });
 
+//get an array of car parks for dropdown list
+
 app.get('/getCarParkDropdown', function(req, res) {
 	const CarParkData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const lines = CarParkData.split(/\r?\n/);
@@ -453,6 +472,7 @@ app.get('/getCarParkDropdown', function(req, res) {
 */
 
 
+// Get list of bookings in car park
 app.post('/getBookings', urlencodedParser, function(req, res) {
 	const CarParkData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const lines = CarParkData.split(/\r?\n/);
@@ -527,6 +547,8 @@ function sortSpaceDatabase(senderArray) {
 *	User buttons.
 *
 */
+
+// book a space
 
 app.post('/bookSpace', function(req, res){
 	var path = 'CarParkDatabase.json';
@@ -627,6 +649,7 @@ app.post('/bookSpace', function(req, res){
 });
 
 
+//function to delete files
 function deleteFiles(path){
 	fs.writeFile(path, "", function(err, result) {
 		console.log("Cleared spaceDatabase");
