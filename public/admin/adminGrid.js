@@ -72,6 +72,7 @@ function draw() {
       }
     }
   })
+  getUserRequests();
 }
 
 async function getGridSize(name){
@@ -90,6 +91,66 @@ async function getGridSize(name){
   })
   console.log(gridSizeLocal);
   return gridSizeLocal;
+}
+
+function getUserRequests() {
+  $.ajax({
+    url: '/getUserRequests',
+    type: "GET",
+    dataType: "json",
+    success: function(userRequests) {
+      addTable(userRequests);
+      }
+    }
+  )
+};
+
+function addTable(userRequest) {
+
+  if(userRequest[0] != undefined){
+    // for (var index = 0; index < userRequest.length; index++){
+      var userID = userRequest[0];
+      var carParkName = userRequest[1];
+      var positionX = userRequest[2];
+      var positionY = userRequest[3];
+      var timing = userRequest[4];
+    
+      var myTableDiv = document.getElementById("request");
+      
+      var tableBody = document.createElement('tbody');
+      myTableDiv.appendChild(tableBody);
+      var tr = document.createElement('tr');
+      tableBody.appendChild(tr);
+         
+      for (var i = 0; i < 4; i++){
+
+          var userTag = document.createElement('td');
+          userTag.appendChild(document.createTextNode(userID));
+          var carTag = document.createElement('td');
+          carTag.appendChild(document.createTextNode(carParkName));
+          var xTag = document.createElement('td');
+          xTag.appendChild(document.createTextNode(positionX));
+          var yTag = document.createElement('td');
+          yTag.appendChild(document.createTextNode(positionY));
+          var timingTag = document.createElement('td');
+          timingTag.appendChild(document.createTextNode(timing));
+          
+          tr.appendChild(userTag);
+          tr.appendChild(xTag);
+          tr.appendChild(yTag);
+          tr.appendChild(timingTag);
+      }
+      myTableDiv.appendChild(tableBody);
+    // };
+  }
+  else{
+    var myTableDiv = document.getElementById("request");
+    var tableBody = document.createElement('tbody');
+    myTableDiv.appendChild(tableBody);
+    var tr = document.createElement('tr');
+    var defaultTag = document.createElement('td');
+    defaultTag.appendChild(document.createTextNode("No request made yet."));
+  }
 }
 
 
@@ -136,26 +197,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
 });
 
-function getUserRequests() {
-  $.ajax({
-    url: "/getUserRequest",
-    type: "GET",
-    dataType: "json",
-    success: function(userRequests) {
-      console.log(userRequests);
-      for (var index = 0; index < userRequests.length; index++){
-        console.log(userRequests[index]);
-        if(userRequests[index] != null) {
-          $('#requests').append('<tr> <th scope="row">' +  (Today) + '</th> <td> ' + userRequests.space + '</td>' + '<td>' + Name + '</td>' + '<td>' + requests.carParkName + '</td> <td> <button class="btn btn-outline-danger" type="button">REJECT</button></td>');
-          document.getElementById(requests[index]).addEventListener("click", function() {
-            ///
-          });
-          }
-        }
-    }
-  })
-}
-
 //Get booking Request:
 function mousePressed() {
   stroke(0);
@@ -164,8 +205,6 @@ function mousePressed() {
   fill("blue");
   rect(y * cellSize, x * cellSize, cellSize, cellSize);
 }
-
-
 
 //AJAX function for dropdown
 function getCarParks() {

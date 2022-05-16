@@ -480,25 +480,6 @@ app.post('/getBookings', urlencodedParser, function(req, res) {
 		}
 	});
 	res.send(JSON.stringify(SpaceArray));
-	/*const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
-	const lines = spaceData.split(/\r?\n/);
-	const senderArray = [];
-	counter = 0;
-	var sortedDatabase = sortSpaceDatabase();
-	sortedDatabase.forEach((line) => {
-		if(line.reserved == "true") {
-			senderArray.push(1);
-		} else if (line.reserved == "false") {
-			senderArray.push(2);
-		} else if (line.reserved == "road") {
-			senderArray.push(3);
-		}
-		else{
-			senderArray.push(4);
-		}
-	});
-	res.send(JSON.stringify(senderArray));
-	*/
 });
 
 // Sort server grid.
@@ -532,7 +513,7 @@ app.post('/bookSpace', function(req, res){
 	console.log("Book Space active!");
 	const spaceData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
-	fs.writeFile('CarParkDatabase.json', "", function(err, result) {
+	fs.writeFileSync('CarParkDatabase.json', "", function(err, result) {
 		console.log("Cleared spaceDatabase");
 		if(err) console.log('error', err);
 	});
@@ -540,7 +521,8 @@ app.post('/bookSpace', function(req, res){
 		var temp = [];
 		//console.log(line);
 		console.log("Length = " + lines.length);
-		if(line.length > 5)
+		// HOLY CODE V2
+		if(line.length > 5){
 			// console.log("Line: " + line);
 			Replaceline = line.replace(/\r?\n|\r/g, "");
 			//console.log(Replaceline);
@@ -563,6 +545,7 @@ app.post('/bookSpace', function(req, res){
 								//edit the server file
 								//console.log("Before : " + currentSpace.reserved);
 								currentSpace.reserved = 'true';
+								currentSpace.timing = req.body.timing;
 								//console.log("After : " + currentSpace.reserved);
 							}
 						}
@@ -587,12 +570,43 @@ app.post('/bookSpace', function(req, res){
 				//console.log("NOT THIS ONE: " + DatabaseLine);
 				appendToFile('CarParkDatabase.json', JSON.stringify(DatabaseLine) + "\n");
 			}
+		}
 	});
-	//temp = null;
+	// Send to admin interface user request.
+	sess=req.session;
+	var newRequest = {
+		"name": sess.userid,
+		"carParkName": req.body.name,
+		"positionX": req.body.positionX,
+		"positionY" : req.body.positionY,
+		"timing": req.body.timing,
+	};
+	// Write out to the bookings.json file.
+	fs.appendFileSync('bookings.json', JSON.stringify(newRequest) + "\n", function(err, result) {
+		if(err) console.log('error', err);
+	});
+
 	sendArray = [];
 	sendArray.push(req.body.positionX);
 	sendArray.push(req.body.positionY);
 	res.send(JSON.stringify(sendArray));
+});
+
+app.get('/getUserRequests', urlencodedParser, function(req, res) {
+    const userRequests = fs.readFileSync('bookings.json', 'UTF-8');
+    const lines = userRequests.split(/\r?\n/);
+    var requestsArray = [];
+    lines.forEach(function(line) {
+        if(line) {
+            line = line.replace(/\r?\n|\r/g, "");
+            // console.log(line);
+            var JSONrequest = JSON.parse(line);
+            requestsArray.push(JSONrequest);
+            }
+    
+        });
+        res.send(requestsArray);
+
 });
 
 

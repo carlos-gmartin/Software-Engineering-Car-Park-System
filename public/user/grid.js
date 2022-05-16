@@ -158,8 +158,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     do{
       var positionX = parseInt(window.prompt("Please enter position X : "), 10);
       var positionY = parseInt(window.prompt("Please enter position Y : "), 10);
+      var timing = parseInt(window.prompt("Please enter the timing : "), 10);
     }
-    while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols);
+    while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols && isNaN(timing) && timing >= 0);
+
     $.ajax({
       url: '/gatherSpaceInformation',
       type: "POST",
@@ -186,11 +188,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
                     name: NameOfGrid,
                     positionX: spaceInfo[0],
                     positionY: spaceInfo[1],
+                    timing: timing,
                 },
                 dataType: "json",
                 success: function(response) {
                     alert("Booked position: " + response[0] + ":" + response[1]);
-                    gatherBalance();
                     // Update grid size.
                 }
               });
@@ -297,20 +299,27 @@ document.addEventListener("DOMContentLoaded", function(event) {
   });
 });
 
-
-/*$document.ready(function() {
+// Location gathering GPS
+function sendGeolocation(position) {
+  var GPSFormat = {
+    "Latitude": position.coords.latitude,
+    "Longitude": position.coords.longitude
+  }
   $.ajax({
-    url: "/getCarParkDropdown",
-    type: "GET",
+    url: "/GPS",
+    type: "POST",
+    data: GPSFormat,
     dataType: "json",
-    success: function(carParks) {
-      for (var index = 0; index <= carParks.length; index++){
-        $('#carParkSelect').append('<option value ="' + data[index] + '">' + data[index] + '</option>');
-      }
-      console.log(carParks);
+    success: function(returnedStatement) {
+      console.log(returnedStatement);
+    },
+    error: function(xhr, status, err) {
+      alert("Error can't connect to server");
     }
-  })
+  });
+  console.log("Latitude: " + position.coords.latitude);
+  console.log("Longitude: " + position.coords.longitude);
+}
 
-}); */
 
 
