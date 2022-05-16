@@ -13,8 +13,10 @@ const bodyParser = require('body-parser');
 const { send } = require('process');
 const Space = require('./classes/space.js');
 const session = require('express-session');
+const req = require('express/lib/request');
 const iv = crypto.randomBytes(16);
 var urlencodedParser = bodyParser.urlencoded({extended:false});
+const editJsonFile = require("edit-json-file");
 
 // Session settings
 
@@ -531,79 +533,66 @@ app.post('/bookSpace', function(req, res){
 	console.log("Book Space active!");
 	const spaceData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
-	const senderData = [];
-	//console.log(lines);
-	// new space array.
-	let newDatabase = [];
-	let counter = 0;
+	var temp = [];
 	lines.forEach((line) => {
 		if(line.length > 5)
-			console.log("Line: " + line);
+			// console.log("Line: " + line);
+			line = line.replace(/\r?\n|\r/g, "");
 			var DatabaseLine = JSON.parse(line);
 			//console.log(req.body.name == DatabaseLine.name);
 			if (req.body.name == DatabaseLine.name) {
-				console.log(DatabaseLine);
+				console.log("LINE ===== " + DatabaseLine);
 				//console.log("DatabaseLine.length = " + DatabaseLine.length);
 				//if (DatabaseLine.length > 0)
 				//{
 					//var JSONline = JSON.parse(DatabaseLine.spaceArray);
 					// Find space in database.
-					var newSpace = [];
-					console.log("DatabaseLine.spaceArray.length = " + DatabaseLine.spaceArray.length);
-					
+					//console.log("DatabaseLine.spaceArray.length = " + DatabaseLine.spaceArray.length);
+
 					DatabaseLine.spaceArray.forEach((currentSpace) => {
-						console.log(" i < DatabaseLine.spaceArray.length = " + currentSpace < DatabaseLine.spaceArray.length);
-						console.log(currentSpace);
-						var bookedSpace = {};
-						console.log("req.body.positionX = " + req.body.positionX);
-						console.log("DatabaseLine.spaceArray[i].positionX = " + DatabaseLine.spaceArray.positionX);
-						console.log(" req.body.positionX == DatabaseLine.spaceArray[i].positionX " + req.body.positionX == DatabaseLine.spaceArray.positionX);
-						if(req.body.positionX == DatabaseLine.spaceArray.positionX) {
-							if(req.body.positionY == DatabaseLine.spaceArray.positionY) {
+
+						// console.log(" i < DatabaseLine.spaceArray.length = " + currentSpace < DatabaseLine.spaceArray.length);
+						// console.log(currentSpace);
+						// console.log("req.body.positionX = " + req.body.positionX);
+						// console.log("DatabaseLine.spaceArray[i].positionX = " + DatabaseLine.spaceArray.positionX);
+						// console.log(" req.body.positionX == DatabaseLine.spaceArray[i].positionX " + req.body.positionX == DatabaseLine.spaceArray.positionX);
+						if(req.body.positionX == currentSpace.positionX) {
+							console.log("X Equals");
+							if(req.body.positionY == currentSpace.positionY) {
 								console.log("Found Reserved Space!");
 								//edit the server file
 								console.log("Before : " + currentSpace.reserved);
 								currentSpace.reserved = 'true';
 								console.log("After : " + currentSpace.reserved);
-								}
 							}
-								// bookedSpace = {
-								// 	"positionX": DatabaseLine.spaceArray.positionX,
-								// 	"positionY": DatabaseLine.spaceArray.positionY,
-								// 	"cost": DatabaseLine.spaceArray.cost,
-								// 	"timing": DatabaseLine.spaceArray.timing,
-								// 	"reserved": "true"
-								// };
-								// 		console.log(bookedSpace);
-								// bookedSpace = {
-								// 	"positionX": DatabaseLine.spaceArray.positionX,
-								// 	"positionY": DatabaseLine.spaceArray.positionY,
-								// 	"cost": DatabaseLine.spaceArray.cost,
-								// 	"timing": DatabaseLine.spaceArray.timing,
-								// 	"reserved": DatabaseLine.spaceArray.reserved
-								// };
-						newSpace.push(currentSpace);
+						}
+						updatedSpace = JSON.stringify(currentSpace);
+						console.log("current space: " + updatedSpace);
+						temp.push(updatedSpace);
+						console.log("ARRAY HERE " + temp);
 					});
-					DatabaseLine.spaceArray = newSpace;
 			}
-			if(counter == 0) {
-				fs.writeFile('spaceDatabase.json', JSON.stringify(DatabaseLine), function(err, result) {
-					console.log("Cleared Space Database!");
-				});
-			} else {
-				appendToFile("spaceDatabase.json", JSON.stringify(DatabaseLine));
+			updatedTemp = JSON.stringify(temp);
+			parsedArray = JSON.parse(updatedTemp);
+			console.log("PARSED ARRAY : " + JSON.parse(updatedTemp));
+		
+			fs.writeFile('spaceDatabase.json', "", function(err, result) {
+				console.log("Cleared spaceDatabase");
+				if(err) console.log('error', err);
+			});
+
+			console.log("Adding parsed array");
+			appendToFile('spaceDatabase.json', "[" + parsedArray[0] + ",");
+			for(var i = 1; i < parsedArray.length - 2; i++){
+				appendToFile('spaceDatabase.json', parsedArray[i] + ",");
 			}
-			counter++;
-		//DatabaseLine.push(newDatabase);
+			appendToFile('spaceDatabase.json', parsedArray[parsedArray.length - 1] + "]");
 	});
-/*updatedSpaces = JSON.stringify(newSpaces);
-console.log(updatedSpaces);
-fs.writeFile('spaceDatabase.json', updatedSpaces, function(err, result) {
-	console.log("Cleared spaceDatabase");
-	if(err) console.log('error', err);
-});
-res.send(JSON.stringify(senderData));
-} */
+	temp = null;
+	sendArray = [];
+	sendArray.push(req.body.positionX);
+	sendArray.push(req.body.positionY);
+	res.send(JSON.stringify(sendArray));
 });
 
 
