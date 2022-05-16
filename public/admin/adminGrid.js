@@ -136,6 +136,25 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
 });
 
+function getUserRequests() {
+  $.ajax({
+    url: "/getUserRequest",
+    type: "GET",
+    dataType: "json",
+    success: function(userRequests) {
+      console.log(userRequests);
+      for (var index = 0; index < userRequests.length; index++){
+        console.log(userRequests[index]);
+        if(userRequests[index] != null) {
+          $('#requests').append('<tr> <th scope="row">' +  (Today) + '</th> <td> ' + userRequests.space + '</td>' + '<td>' + Name + '</td>' + '<td>' + requests.carParkName + '</td> <td> <button class="btn btn-outline-danger" type="button">REJECT</button></td>');
+          document.getElementById(requests[index]).addEventListener("click", function() {
+            ///
+          });
+          }
+        }
+    }
+  })
+}
 
 //Get booking Request:
 function mousePressed() {

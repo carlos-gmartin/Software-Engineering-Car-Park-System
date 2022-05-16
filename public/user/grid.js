@@ -71,7 +71,7 @@ function draw() {
           } else if (returnedArray[counter] == 3) {
             fill("black");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            //fill("white");
+            fill("white");
             text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
             //console.log("Making black square!");
           } else {
@@ -101,7 +101,7 @@ async function getGridSize(name){
       gridSizeLocal = gridSize;     
     }
   })
-  console.log(gridSizeLocal);
+  //console.log(gridSizeLocal);
   return gridSizeLocal;
 }
 
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     window.location = "/Login";
   });
   // Get currently logged in user balance.
-  gatherBalance();
+  //gatherBalance();
 
   document.getElementById('reserve').addEventListener("click", function(){ 
     do{
@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 var space;
 function gatherSpace(positionX, positionY, url){
-  console.log(NameOfGrid);
+  //console.log(NameOfGrid);
   $.ajax({
     url: url,
     type: "POST",
@@ -240,7 +240,7 @@ function getCarParks() {
           document.getElementById(CarParksArray[index]).addEventListener("click", function(event) {
             NameOfGrid = event.target.id
             setup(NameOfGrid);
-            console.log(NameOfGrid);
+            //console.log(NameOfGrid);
           });      
         }
       }
@@ -252,6 +252,7 @@ $(document).ready(function(){
   $("carParkSelect").change(function(){
       var NameOfGrid = $(this).children("option:selected").val();
       console.log(NameOfGrid);
+      gatherBalance();
   });
 });
 
@@ -268,6 +269,33 @@ function gatherBalance(){
     }
   });
 }
+
+// Adding balance to user
+document.addEventListener("DOMContentLoaded", function(event) { 
+  document.getElementById('addmoney').addEventListener("click", function() {
+      do{
+          var addToBalance = parseFloat(window.prompt("How much would you like to add? " + "£: "), 10);
+      }
+      while(isNaN(Number.isInteger(addToBalance*100) + addToBalance > 0.01 || addToBalance <= 1000));
+
+      var result = window.confirm("Are you sure you want to add £" + balance + "to your balance?");
+      if(result == true){
+
+        $.ajax({
+          url: "/getBalance",
+          type: "GET",
+          dataType: "json",
+          success: function(balance) {
+            userBalance = balance+addToBalance;
+            sess = req.session;
+          }
+        });
+      }
+      else{
+          alert("Transaction was cancelled.");
+      }
+  });
+});
 
 
 /*$document.ready(function() {
