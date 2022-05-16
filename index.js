@@ -16,7 +16,6 @@ const session = require('express-session');
 const req = require('express/lib/request');
 const iv = crypto.randomBytes(16);
 var urlencodedParser = bodyParser.urlencoded({extended:false});
-const editJsonFile = require("edit-json-file");
 
 // Session settings
 
@@ -530,18 +529,29 @@ function sortSpaceDatabase(senderArray) {
 */
 
 app.post('/bookSpace', function(req, res){
+	var path = 'CarParkDatabase.json';
 	console.log("Book Space active!");
 	const spaceData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
-	var temp = [];
+	fs.writeFile(path, "", function(err, result) {
+		console.log("Cleared spaceDatabase");
+		if(err) console.log('error', err);
+	});
+	//console.log(lines);
 	lines.forEach((line) => {
+		console.log(line);
+	});
+	lines.forEach((line) => {
+		var temp = [];
+		console.log(line);
 		if(line.length > 5)
 			// console.log("Line: " + line);
-			line = line.replace(/\r?\n|\r/g, "");
-			var DatabaseLine = JSON.parse(line);
+			Replaceline = line.replace(/\r?\n|\r/g, "");
+			console.log(Replaceline);
+			var DatabaseLine = JSON.parse(Replaceline);
 			//console.log(req.body.name == DatabaseLine.name);
 			if (req.body.name == DatabaseLine.name) {
-				console.log("LINE ===== " + DatabaseLine);
+				//console.log("LINE ===== " + DatabaseLine);
 				//console.log("DatabaseLine.length = " + DatabaseLine.length);
 				//if (DatabaseLine.length > 0)
 				//{
@@ -567,33 +577,62 @@ app.post('/bookSpace', function(req, res){
 							}
 						}
 						updatedSpace = JSON.stringify(currentSpace);
-						console.log("current space: " + updatedSpace);
+						//console.log("current space: " + updatedSpace);
 						temp.push(updatedSpace);
-						console.log("ARRAY HERE " + temp);
+						//console.log("ARRAY HERE " + temp);
 					});
-			}
-			updatedTemp = JSON.stringify(temp);
-			parsedArray = JSON.parse(updatedTemp);
-			console.log("PARSED ARRAY : " + JSON.parse(updatedTemp));
-		
-			fs.writeFile('spaceDatabase.json', "", function(err, result) {
-				console.log("Cleared spaceDatabase");
-				if(err) console.log('error', err);
-			});
+				}
+			// HOLY GRAIL CODE
+			console.log(temp);
+			var updatedTemp = JSON.stringify(temp);
+			var parsedArray = JSON.parse(updatedTemp);
+			console.log(parsedArray);
+			var concatSpaceArray = '';
+			//console.log("PARSED ARRAY : " + JSON.parse(updatedTemp));
 
-			console.log("Adding parsed array");
-			appendToFile('spaceDatabase.json', "[" + parsedArray[0] + ",");
+			// //console.log("Adding parsed array");
+			// appendToFile('spaceDatabase.json', "[" + parsedArray[0] + ",");
+			concatSpaceArray = concatSpaceArray + "[" + parsedArray[0] + ',';
 			for(var i = 1; i < parsedArray.length - 2; i++){
-				appendToFile('spaceDatabase.json', parsedArray[i] + ",");
+				//appendToFile('spaceDatabase.json', parsedArray[i] + ",");
+				concatSpaceArray = concatSpaceArray + parsedArray[i] + ',';
 			}
-			appendToFile('spaceDatabase.json', parsedArray[parsedArray.length - 1] + "]");
+			//appendToFile('spaceDatabase.json', parsedArray[parsedArray.length - 1] + "]");
+			concatSpaceArray = concatSpaceArray + parsedArray[parsedArray.length - 1] + "]";
+			console.log(concatSpaceArray);
+			concatSpaceArray = JSON.parse(concatSpaceArray);
+			//console.log(concatSpaceArray);
+			//updatedData = updatedData.replace(/\r?\n|\r/g, "");
+
+			if (req.body.name == DatabaseLine.name) {
+				var newCarPark = {
+					"name": DatabaseLine.name,
+					"rows": DatabaseLine.rows,
+					"columns" : DatabaseLine.columns,
+					"longitude": DatabaseLine.longitude,
+					"latitude": DatabaseLine.latitude,
+					"spaceArray": concatSpaceArray
+				};
+				appendToFile(path, JSON.stringify(newCarPark) + "\n");
+			} else {
+				console.log("NOT THIS ONE: " + DatabaseLine);
+				appendToFile(path, JSON.stringify(DatabaseLine) + "\n");
+			}
 	});
-	temp = null;
+	//temp = null;
 	sendArray = [];
 	sendArray.push(req.body.positionX);
 	sendArray.push(req.body.positionY);
 	res.send(JSON.stringify(sendArray));
 });
+
+
+function deleteFiles(path){
+	fs.writeFile(path, "", function(err, result) {
+		console.log("Cleared spaceDatabase");
+		if(err) console.log('error', err);
+	});
+}
 
 
 // function to return space information.
