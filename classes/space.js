@@ -1,9 +1,9 @@
 class Space {
-    constructor(positionX, positionY, cost, timing, reserved) {
+    constructor(positionX, positionY, cost, reserved) {
         this.positionX = positionX;
         this.positionY = positionY;
         this.cost = cost;
-        this.timing = timing;
+        this.timing = 0;
         this.reserved = reserved;
     }
     get getCost() {
