@@ -7,6 +7,7 @@ head
   // Grid js same as USER.
   script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js')
   script(src='https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js')
+  script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js")
   script(src='adminGrid.js')
   title UEA PARKING MANAGEMENT (ADMINISTRATOR)
 nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
@@ -22,17 +23,13 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
       li.nav-item
         a.nav-link(href='#') Users
       li.nav-item.dropdown
-        a#navbarDropdown.nav-link.dropdown-toggle(href='#' role='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false')
+        button#dropdownMenuButton.btn.btn-secondary.dropdown-toggle(type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false')
           | Car Parks
-        .dropdown-menu(aria-labelledby='navbarDropdown')
-          a.dropdown-item(href='#') Action
-          a.dropdown-item(href='#') Another action
-          .dropdown-divider
-          a.dropdown-item(href='#') Something else here
+          .dropdown-menu#carParkSelect(aria-labelledby='dropdownMenuButton')
       li.nav-item 
         button(type='button')#createGrid Add temporary grid(ADD CAR PARK)
     a.text-white Hello, Dan! You are an administrator!
-    button.btn.btn-outline-success.my-2.my-sm-0(type='submit') Log Out
+    #logOut.button.btn.btn-outline-success.my-2.my-sm-0(type='button') Log Out
 main
   table.table.text-white
     thead
@@ -42,47 +39,13 @@ main
         th(scope='col') User
         th(scope='col') Car Park
         th(scope='col') Response
-    tbody
-      tr
-        th(scope='row') 21/03/2022 (Today)
-        td Parking Space C5 14:00 - 16:00
-        td Carlos
-        td Main Car Park
-        td
-          button.btn.btn-outline-success(type='button')
-            | ACCEPT
-          button.btn.btn-outline-danger(type='button')
-            | REJECT
-      tr
-        th(scope='row') 21/03/2022 (Today)
-        td Parking Space C5 14:00 - 16:00
-        td Liam
-        td Main Car Park
-        td
-          button.btn.btn-outline-success(type='button')
-            | ACCEPT
-          button.btn.btn-outline-danger(type='button')
-            | REJECT
-      tr
-        th(scope='row') 21/03/2022 (Today)
-        td Parking Space A5 14:00 - 16:00
-        td Arjun
-        td Main Car Park
-        td
-          button.btn.btn-outline-success(type='button')
-            | ACCEPT
-          button.btn.btn-outline-danger(type='button')
-            | REJECT
-      tr
-        th(scope='row') 21/03/2022 (Today)
-        td Parking Space B5 14:00 - 16:00
-        td Daniel
-        td Main Car Park
-        td
-          button.btn.btn-outline-success(type='button')
-            | ACCEPT
-          button.btn.btn-outline-danger(type='button')
-            | REJECT
+    tbody#request
+  section
+    .col-5
+      #gridBackground.card(style='height: 70rem; width: 70rem;')
+        .card-body
+           #admin-grid 
+
 nav.navbar.fixed-bottom.navbar-dark.bg-dark.justify-content-center
   a.navbar-brand(href='#')
     | Copyright &copy;2020 A1 UEA PARKING MANAGEMENT. For more information on our project, click here: 

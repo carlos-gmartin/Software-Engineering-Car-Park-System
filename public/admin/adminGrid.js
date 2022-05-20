@@ -1,36 +1,59 @@
-getCarParks();
-
 // Canvas size
-var canvasX = 1200;
-var canvasY = 1200;
+var canvasX = 1000;
+var canvasY = 1000;
 
-// Number of columns and rows
-var rows = 10;
-var cols = 10;
+var rows;
+var cols;
+
+//setup("Test");
+var NameOfGrid = "Test";
+
 // Size of each cell
 var cellSize = 100;
 
-function setup() {
-     // var canvas = createCanvas(canvasX, canvasY);
-    //frameRate(60);
+getCarParks();
+
+async function setup(gridName) {
+  gridName = NameOfGrid;
+  if(gridName != null) {
+    gridSize = await getGridSize(gridName);
+    var gridBackground = document.getElementById('gridBackground');
+    var gridHeight = 7 * gridSize[1];
+    var gridWidth = 7 * gridSize[0];
+    gridBackground.style.height = gridHeight + 'rem';
+    gridBackground.style.width = gridWidth + 'rem';
+    canvasX = 100 * gridSize[0];
+    canvaxY = 100 * gridSize[1];
+    console.log(canvasX);
+    var canvas = createCanvas(canvasX, canvasY);
+    canvas.parent('admin-grid');
+    console.log(gridSize[0]);
+    rows = gridSize[0];
+    console.log(gridSize[1]);
+    cols = gridSize[1];
+    // console.log(gridSize);
+    frameRate(20);
+  }
 }
 
 function draw() {
+  console.log("Trying to draw!");
   stroke(0);
-}
-
-// Draw grid
-function drawGrid(){
-// Ajax request for server database.
+  //console.log(rows);
+  //console.log(cols);
+  // Ajax request for server database.
   $.ajax({
     url: "/getBookings",
-    type: "GET",
+    type: "POST",
     dataType: "json",
+    data: {
+      name: NameOfGrid
+    },
     success: function(returnedArray) {
-      console.log(returnedArray);
+      //console.log(returnedArray);
       var counter = 0;
-      for(var y = 0; y < 10; y++) {
-        for(var x = 0; x < 10; x++) {
+      for(var y = 0; y < cols; y++) {
+        for(var x = 0; x < rows; x++) {
           if(returnedArray[counter] == 1) {
             fill("green");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
@@ -49,14 +72,96 @@ function drawGrid(){
       }
     }
   })
+  getUserRequests();
 }
 
+async function getGridSize(name){
+  var gridSizeLocal;
+  await $.ajax({
+    url: "/getGridSize",
+    type: "POST",
+    dataType: "json",
+    data: {
+      name: name
+    },
+    success: function(gridSize) {
+      console.log("Grid sized: " + gridSize);
+      gridSizeLocal = gridSize;     
+    }
+  })
+  console.log(gridSizeLocal);
+  return gridSizeLocal;
+}
+
+function getUserRequests() {
+  $.ajax({
+    url: '/getUserRequests',
+    type: "GET",
+    dataType: "json",
+    success: function(userRequests) {
+      addTable(userRequests);
+      }
+    }
+  )
+};
+
+function addTable(userRequest) {
+
+  if(userRequest[0] != undefined){
+    // for (var index = 0; index < userRequest.length; index++){
+      var userID = userRequest[0];
+      var carParkName = userRequest[1];
+      var positionX = userRequest[2];
+      var positionY = userRequest[3];
+      var timing = userRequest[4];
+    
+      var myTableDiv = document.getElementById("request");
+      
+      var tableBody = document.createElement('tbody');
+      myTableDiv.appendChild(tableBody);
+      var tr = document.createElement('tr');
+      tableBody.appendChild(tr);
+         
+      for (var i = 0; i < 4; i++){
+
+          var userTag = document.createElement('td');
+          userTag.appendChild(document.createTextNode(userID));
+          var carTag = document.createElement('td');
+          carTag.appendChild(document.createTextNode(carParkName));
+          var xTag = document.createElement('td');
+          xTag.appendChild(document.createTextNode(positionX));
+          var yTag = document.createElement('td');
+          yTag.appendChild(document.createTextNode(positionY));
+          var timingTag = document.createElement('td');
+          timingTag.appendChild(document.createTextNode(timing));
+          
+          tr.appendChild(userTag);
+          tr.appendChild(xTag);
+          tr.appendChild(yTag);
+          tr.appendChild(timingTag);
+      }
+      myTableDiv.appendChild(tableBody);
+    // };
+  }
+  else{
+    var myTableDiv = document.getElementById("request");
+    var tableBody = document.createElement('tbody');
+    myTableDiv.appendChild(tableBody);
+    var tr = document.createElement('tr');
+    var defaultTag = document.createElement('td');
+    defaultTag.appendChild(document.createTextNode("No request made yet."));
+  }
+}
 
 
 // create Grid button
 document.addEventListener("DOMContentLoaded", function(event) { 
+  document.getElementById("logOut").addEventListener("click", function(){
+    window.location = "/Login";
+  });
     document.getElementById('createGrid').addEventListener("click", function() {
         do{
+            var CarParkName = window.prompt("Please enter the name of the carpark: ");
             var rowSize = parseInt(window.prompt("Please enter a desired car park size to be created," + "rows: "), 10);
             var colSize = parseInt(window.prompt("Please enter a desired car park size to be created," + "cols: "), 10);
             var pricing = parseInt(window.prompt("Please enter the price for the car park spaces," + "price: "), 10);
@@ -69,6 +174,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 url: "/createGridButton",
                 type: "POST",
                 data: { 
+                    CarParkName: CarParkName,
                     rowSize: rowSize,
                     colSize: colSize,
                     pricing: pricing
@@ -76,6 +182,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 dataType: "json",
                 success: function(response) {
                     alert('Car park created successfully grid of size: ' + response);
+                    $('#carParkSelect').append('<option id = "' + CarParkName + '" value ="' + CarParkName + '">' + CarParkName + '</option>');
+                    document.getElementById(CarParkName).addEventListener("click", function(event) {
+                      NameOfGrid = event.target.id
+                      setup(NameOfGrid);
+                      console.log(NameOfGrid);
+                    }); 
                 }
             });
         }
@@ -83,8 +195,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
             alert("Car Park was cancelled.");
         }
     });
-  });
+});
 
+//Get booking Request:
+function mousePressed() {
+  stroke(0);
+  let x = Math.floor(mouseY / cellSize);
+  let y = Math.floor(mouseX / cellSize);
+  fill("blue");
+  rect(y * cellSize, x * cellSize, cellSize, cellSize);
+}
 
 //AJAX function for dropdown
 function getCarParks() {
@@ -93,8 +213,27 @@ function getCarParks() {
     type: "GET",
     dataType: "json",
     success: function(carParks) {
-      //Put html editing code for dropdown in here
+      var CarParksArray = carParks;
       console.log(carParks);
+      for (var index = 0; index < carParks.length; index++){
+        console.log("CarParks[index] = " + carParks[index]);
+        if(carParks[index] != null) {
+          $('#carParkSelect').append('<option id = "' + carParks[index] + '" value ="' + carParks[index] + '">' + carParks[index] + '</option>');
+          document.getElementById(CarParksArray[index]).addEventListener("click", function(event) {
+            NameOfGrid = event.target.id
+            setup(NameOfGrid);
+            console.log(NameOfGrid);
+          });      
+        }
+      }
     }
   })
 }
+
+$(document).ready(function(){
+  $("carParkSelect").change(function(){
+      var NameOfGrid = $(this).children("option:selected").val();
+      console.log(NameOfGrid);
+  });
+});
+

@@ -1,3 +1,4 @@
+//module loading
 const express = require('express'); 
 const app = express(); 
 const fs = require('fs'); 
@@ -12,8 +13,18 @@ const { body,validationResult } = require('express-validator');
 const bodyParser = require('body-parser');
 const { send } = require('process');
 const Space = require('./classes/space.js');
+const session = require('express-session');
+const req = require('express/lib/request');
 const iv = crypto.randomBytes(16);
 var urlencodedParser = bodyParser.urlencoded({extended:false});
+
+// Session settings
+
+app.use(session({
+	secret: config.key,
+	resave: false,
+	saveUninitialized: false
+}));
 
 /*
 *
@@ -22,6 +33,7 @@ var urlencodedParser = bodyParser.urlencoded({extended:false});
 *
 */
 
+//encrypt 
 function encrypt(text) {
 
     const cipher = crypto.createCipheriv('aes-256-cbc', config.key, iv);
@@ -34,6 +46,7 @@ function encrypt(text) {
     };
 };
 
+//decrypt
 function decrypt(json) {
 	const decipher = crypto.createDecipheriv('aes-256-cbc', config.key, Buffer.from(json.iv, 'hex'));
 
@@ -42,13 +55,14 @@ function decrypt(json) {
     return decrpyted.toString();
 }
 
+//add reqJSON to fileName
 function appendToFile(fileName, reqJSON)
 {
 	fs.appendFile(fileName, reqJSON, function(err) {
 		if (err) {
 			console.log("Error Writing to File!");
 		} else {
-			//console.log("Success Writing to File!");
+			// console.log("Success Writing to File!");
 		}
 	});
 }
@@ -81,6 +95,9 @@ async function adminLogin(req, res, fileSend) {
 					//console.log("Admin Login Successful!");
 					//console.log("admin_login = " + admin_login);
 					if (admin_login != "true") {
+						sess=req.session;
+						sess.userid = req.body.username;
+						sess.admin = "true";
 						admin_login = "true";
 						//console.log("admin_login = " + admin_login);
 						var fileSend = config.public_folder + "/admin/admin.pug";
@@ -94,6 +111,7 @@ async function adminLogin(req, res, fileSend) {
 	return admin_login;
 }
 
+//userLogin
 async function userLogin(req, res, fileSend) {
 	const userData = fs.readFileSync('database.json', 'UTF-8');
 	const lines = userData.split(/\r?\n/);
@@ -128,6 +146,9 @@ async function userLogin(req, res, fileSend) {
 					{
 						//console.log("Username Correct!");
 						if (req.body.password === JSONuser.password) {
+							sess=req.session;
+							sess.userid = req.body.username;
+							sess.admin = "false";
 							//console.log("Password Correct!");
 							var fileSend = config.public_folder + "/user/home.pug";
 							//res.send(pug.renderFile(fileSend));
@@ -141,6 +162,7 @@ async function userLogin(req, res, fileSend) {
 		return result;
 	}
 	
+//login function
 async function login(req, res) {
 	fileSend = "./Login.pug";
 	//console.log(JSON.stringify(req.body));
@@ -155,6 +177,8 @@ async function login(req, res) {
 	}
 }	
 
+
+//unsuccessful login
 function loginUnsuccessful(req, res, result, admin_login) {
 	var fileSend = config.public_folder + "/login.pug";
 	if(result != "true" && admin_login != "true") {
@@ -165,6 +189,7 @@ function loginUnsuccessful(req, res, result, admin_login) {
 	}
 }
 
+// ban user
 function banUser(username) {
 	username = username + "\n";
 	appendToFile('adminBlacklist.json', username);
@@ -185,16 +210,21 @@ function testCarParkClass() {
 
 app.use(express.static(config.public_folder));
 
+
 app.use(express.urlencoded({ // encrypts data sent via POST
 	extended: true
 }));
 
 // Send user page:
 app.get('/user', function(req, res) {
+	sess = req.session;
+	console.log("Sess.userid = " + sess.userid);
+	console.log("Sess.admin = " + sess.admin);
 	var fileSend = config.public_folder + '/user/home.pug';
 	res.send(pug.renderFile(fileSend));
 });
 
+//Get account page
 app.get('/user-account', function(req, res) {
 	var fileSend = config.public_folder + '/user/account.pug';
 	res.send(pug.renderFile(fileSend));
@@ -212,9 +242,16 @@ app.get('/Register', function(req, res) {
 	res.send(pug.renderFile(fileSend));
 });
 
+
+// Admin Register
 app.get('/Admin_Register', function(req, res) {
 	var fileSend = config.public_folder + '/admin/AdminRegister.pug';
 	res.send(pug.renderFile(fileSend));
+});
+
+// Default send to login page
+app.get('/', function(req, res) {
+	res.redirect('/login', 301);
 });
 
 app.get('/Login', function(req, res) {
@@ -232,6 +269,8 @@ app.get('/Login', function(req, res) {
 		res.send(pug.renderFile(fileSend));
 	}
 });
+
+//register
 
 app.post('/register', [
 	body('username', 'Includes Code').trim().escape(),
@@ -254,6 +293,8 @@ app.post('/register', [
 		}));
 	}
 });
+
+//admin register
 
 app.post('/Admin_Register', [
 body('username', 'Includes Code').trim().escape(),
@@ -301,25 +342,59 @@ app.post('/login', [
 	}
 });
 
+// Add current users balance
+app.get('/getBalance', function(req, res){
+
+	sess = req.session;
+	var balance;
+
+	const userData = fs.readFileSync('database.json', 'UTF-8');
+	const lines = userData.split(/\r?\n/);
+	var result;
+	lines.forEach(function(line) {
+		line = line.replace(/\r?\n|\r/g, "");
+		if (line.length > 2)
+			{
+				//console.log(line);
+				var JSONline = JSON.parse(line);
+				//console.log(JSONline);
+				var user = decrypt(JSONline);
+				//console.log(user);
+				var JSONuser = JSON.parse(user);
+				if(JSONuser.username == sess.userid){
+					balance = JSONuser.balance;
+				}
+			}
+	});
+	res.send(balance);
+});
+
+
 /*
 *		
 * 	Bookings and sorting.
 *
 */
 
+/*
+*	Grid and car parks.
+*
+*/
+
 // Create server grid
-function createGrid(sizeX, sizeY){
+function createGrid(sizeX, sizeY, price){
 	// X value
     for (let indexX = 0; indexX < sizeX; indexX++) {
 		// Y value
 		for (let indexY = 0; indexY < sizeY; indexY++) {
-			var newSpace = new space(indexX, indexY, 10, 10, "false");
+			var newSpace = new space(indexX, indexY, price, "false");
 			JSONnewSpace = JSON.stringify(newSpace);
 			JSONnewSpace = JSONnewSpace + '\n';
 			appendToFile('spaceDatabase.json', JSONnewSpace);
 		}
 	}
 }
+
 // temporary grid size number. Need to create grid in admin.
 var gridSize = [];
 
@@ -330,29 +405,49 @@ app.post('/createGridButton', function(req, res){
 	if (!errors.isEmpty()) {
 		console.log(errors);
 	} else {
-		console.log(req.body.rowSize);
-		console.log(req.body.colSize);
-		console.log(req.body.pricing);
-
 		gridSize.push(req.body.rowSize);
 		gridSize.push(req.body.colSize);
-		console.log(gridSize);
 		testAdmin = new admin('username', 'password', '01010219129129');
-		var tempCarPark = testAdmin.addCarPark("CarPark1", req.body.rowSize, req.body.colSize, req.body.pricing);
+		var tempCarPark = testAdmin.addCarPark(req.body.CarParkName, req.body.rowSize, req.body.colSize, req.body.pricing);
 		reqJSON = JSON.stringify(tempCarPark) + "\n";	
 		appendToFile("CarParkDatabase.json", reqJSON);
-		createGrid(req.body.rowSize, req.body.colSize);
-		console.log("Created grid: " + req.body.rowSize + "," + req.body.colSize);
+		createGrid(req.body.rowSize, req.body.colSize, req.body.pricing);
 		res.send(gridSize);
 	}
 });
 
 // Send grid size to user interface for generation.
-app.get('/getGridSize', function(req,res){
-	console.log("Sending grid size to grid.js");
-	console.log(gridSize);
-	res.send(JSON.stringify(gridSize));
+app.post('/getGridSize', urlencodedParser, function(req,res){
+	var gridSize = [];
+	//console.log("Grid Size req.body.name: " + req.body.name);
+	var CarParkDatabase = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
+	const CarParkDatabaseLines = CarParkDatabase.split(/\r?\n/);
+	var found;
+	var rows;
+	var cols;
+	CarParkDatabaseLines.forEach(async function(DatabaseLine) {
+		DatabaseLine = DatabaseLine.replace(/\r?\n|\r/g, "");
+		if (DatabaseLine.length > 2) {
+			//console.log("AdminLine = " +AdminLine);
+			var JSONDatabaseLine = JSON.parse(DatabaseLine);
+			//console.log("JSONAdminline = " + JSONAdminline);
+			//console.log(adminUser);
+			//console.log("adminUser.username = " + adminUser.username)
+			//console.log("adminUser.password = " + adminUser.password)
+			if(req.body.name === JSONDatabaseLine.name) {
+				if (found != "true") {
+					found = "true";
+					//console.log("admin_login = " + admin_login);
+					gridSize.push(JSONDatabaseLine.rows);
+					gridSize.push(JSONDatabaseLine.columns);
+					res.send(JSON.stringify(gridSize));
+				}
+			}
+		}
+	});
 });
+
+//get an array of car parks for dropdown list
 
 app.get('/getCarParkDropdown', function(req, res) {
 	const CarParkData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
@@ -361,56 +456,54 @@ app.get('/getCarParkDropdown', function(req, res) {
 	lines.forEach(function(line) {
 		if(line.length > 2) {
 			line = line.replace(/\r?\n|\r/g, "");
-			console.log(line);
+			// console.log(line);
 			var CarParkJSON = JSON.parse(line);
 			CarParkArray.push(CarParkJSON.name);
 		}
 	});
-	console.log(CarParkArray);
 	res.send(JSON.stringify(CarParkArray));
 });
 
 
+/*
+*
+*	Bookings.	
+*
+*/
 
-app.get('/getBookings', urlencodedParser, function(req, res) {
-	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
-	const lines = spaceData.split(/\r?\n/);
-	const senderArray = [];
-	counter = 0;
-	var sortedDatabase = sortSpaceDatabase();
-	sortedDatabase.forEach((line) => {
-		if(line.reserved == "true") {
-			senderArray.push(1);
-		} else if (line.reserved == "false") {
-			senderArray.push(2);
-		} else {
-			senderArray.push(3);
+
+// Get list of bookings in car park
+app.post('/getBookings', urlencodedParser, function(req, res) {
+	const CarParkData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
+	const lines = CarParkData.split(/\r?\n/);
+	var SpaceArray = [];
+	lines.forEach(function(line) {
+		if(line.length > 2) {
+			line = line.replace(/\r?\n|\r/g, "");
+			// console.log(line);
+			var CarParkJSON = JSON.parse(line);
+			if (req.body.name === CarParkJSON.name) {
+				var sortedDatabase = sortSpaceDatabase(CarParkJSON.spaceArray);
+			sortedDatabase.forEach((line) => {
+				if(line.reserved == "true") {
+					SpaceArray.push(1);
+				} else if (line.reserved == "false") {
+					SpaceArray.push(2);
+				} else if (line.reserved == "road") {
+					SpaceArray.push(3);
+				}
+				else{
+					SpaceArray.push(4);
+				}
+			});
+			}
 		}
 	});
-	res.send(JSON.stringify(senderArray));
+	res.send(JSON.stringify(SpaceArray));
 });
 
 // Sort server grid.
-function sortSpaceDatabase() {
-	const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
-	const lines = spaceData.split(/\r?\n/);
-	const senderArray = [];
-	counter = 0;
-	lines.forEach((line) => {
-		line = line.replace(/\r?\n|\r/g, "");
-		if (line.length > 2) // Change number if no work
-		{
-			var JSONline = JSON.parse(line);
-			//console.log(JSONline);
-			senderArray.push(JSONline);
-			//senderArray.forEach((JSONObject) => {
-			//	console.log(JSONObject);
-			//});	
-		}
-	});
-	//senderArray.forEach((JSONObject) => {
-	//	console.log(JSONObject);
-	//});	
+function sortSpaceDatabase(senderArray) {	
 	senderArray.sort((a, b) => {
 		if(a.positionY > b.positionY) {
 			return 1;
@@ -425,13 +518,165 @@ function sortSpaceDatabase() {
 		}
 	});
 	senderArray.forEach((JSONObject) => {
-		// console.log(JSONObject);
+		//console.log(JSONObject);
 	});	
 	return senderArray;
 };
 
+/*
+*
+*	User buttons.
+*
+*/
+
+// book a space
+
+app.post('/bookSpace', function(req, res){
+	console.log("Book Space active!");
+	const spaceData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
+	const lines = spaceData.split(/\r?\n/);
+	fs.writeFileSync('CarParkDatabase.json', "", function(err, result) {
+		console.log("Cleared spaceDatabase");
+		if(err) console.log('error', err);
+	});
+	lines.forEach((line) => {
+		var temp = [];
+		//console.log(line);
+		console.log("Length = " + lines.length);
+		// HOLY CODE V2
+		if(line.length > 5){
+			// console.log("Line: " + line);
+			Replaceline = line.replace(/\r?\n|\r/g, "");
+			//console.log(Replaceline);
+			var DatabaseLine = JSON.parse(Replaceline);
+			//console.log(req.body.name == DatabaseLine.name);
+			if (req.body.name == DatabaseLine.name) {
+				//console.log("LINE ===== " + DatabaseLine);
+				//console.log("DatabaseLine.length = " + DatabaseLine.length);
+				//if (DatabaseLine.length > 0)
+				//{
+					//var JSONline = JSON.parse(DatabaseLine.spaceArray);
+					// Find space in database.
+					//console.log("DatabaseLine.spaceArray.length = " + DatabaseLine.spaceArray.length);
+
+					DatabaseLine.spaceArray.forEach((currentSpace) => {
+						if(req.body.positionX == currentSpace.positionX) {
+							//console.log("X Equals");
+							if(req.body.positionY == currentSpace.positionY) {
+								//console.log("Found Reserved Space!");
+								//edit the server file
+								//console.log("Before : " + currentSpace.reserved);
+								currentSpace.reserved = 'true';
+								currentSpace.timing = req.body.timing;
+								//console.log("After : " + currentSpace.reserved);
+							}
+						}
+						updatedSpace = currentSpace;
+						//console.log("current space: " + updatedSpace);
+						temp.push(updatedSpace);
+						//console.log("ARRAY HERE " + temp);
+					});
+				}
+			// HOLY GRAIL CODE ----- DO NOT TOUCH!
+			if (req.body.name == DatabaseLine.name) {
+				var newCarPark = {
+					"name": DatabaseLine.name,
+					"rows": DatabaseLine.rows,
+					"columns" : DatabaseLine.columns,
+					"longitude": DatabaseLine.longitude,
+					"latitude": DatabaseLine.latitude,
+					"spaceArray": temp
+				};
+				appendToFile('CarParkDatabase.json', JSON.stringify(newCarPark) + "\n");
+			} else {
+				//console.log("NOT THIS ONE: " + DatabaseLine);
+				appendToFile('CarParkDatabase.json', JSON.stringify(DatabaseLine) + "\n");
+			}
+		}
+	});
+	// Send to admin interface user request.
+	sess=req.session;
+	var newRequest = {
+		"name": sess.userid,
+		"carParkName": req.body.name,
+		"positionX": req.body.positionX,
+		"positionY" : req.body.positionY,
+		"timing": req.body.timing,
+	};
+	// Write out to the bookings.json file.
+	fs.appendFileSync('bookings.json', JSON.stringify(newRequest) + "\n", function(err, result) {
+		if(err) console.log('error', err);
+	});
+
+	sendArray = [];
+	sendArray.push(req.body.positionX);
+	sendArray.push(req.body.positionY);
+	res.send(JSON.stringify(sendArray));
+});
+
+app.get('/getUserRequests', urlencodedParser, function(req, res) {
+    const userRequests = fs.readFileSync('bookings.json', 'UTF-8');
+    const lines = userRequests.split(/\r?\n/);
+    var requestsArray = [];
+    lines.forEach(function(line) {
+        if(line) {
+            line = line.replace(/\r?\n|\r/g, "");
+            // console.log(line);
+            var JSONrequest = JSON.parse(line);
+            requestsArray.push(JSONrequest);
+            }
+    
+        });
+        res.send(requestsArray);
+  
+// function to return space information.
+function findSpace(positionX, positionY, CarParkName){
+	const DatabaseData = fs.readFileSync("CarParkDataBase.json", 'UTF-8');
+	const lines = DatabaseData.split(/\r?\n/);
+	const senderData = [];
+	lines.forEach((line) => {
+		line = line.replace(/\r?\n|\r/g, "");
+		if (line.length > 2)
+		{
+			var CarParkLine = JSON.parse(line); // Database
+			if(CarParkName == CarParkLine.name) {
+				for(var i = 0; i < CarParkLine.spaceArray.length; i++) {
+					//console.log(positionY == CarParkLine.spaceArray[i].positionY);
+					if(positionY == CarParkLine.spaceArray[i].positionY) {
+						//console.log("True!");
+						if(positionX == CarParkLine.spaceArray[i].positionX) {
+							senderData.push(CarParkLine.spaceArray[i].positionX);
+							senderData.push(CarParkLine.spaceArray[i].positionY);
+							senderData.push(CarParkLine.spaceArray[i].cost);
+							senderData.push(CarParkLine.spaceArray[i].timing);
+							senderData.push(CarParkLine.spaceArray[i].reserved);
+							//console.log("Found the space!");
+						}
+					}
+				}
+			}
+		}
+	});
+	//console.log(senderData);
+	return senderData;
+}
+
+// Get car park when booking.
+app.post('/gatherSpaceInformation',urlencodedParser, function(req, res){
+	var errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors);
+	} 
+	else {
+		// spaceDatabase current file.
+		//console.log("Sent: " + req.body.name);
+		//console.log("Sent: " + req.body.positionX);
+		//console.log("Sent: " + req.body.positionY);
+		var foundSpace = findSpace(req.body.positionX, req.body.positionY, req.body.name);
+		res.send(JSON.stringify(foundSpace));
+	}
+});
 
 app.listen(config.port, function() { 
-	testCarParkClass();
 	console.log('Express app listening on port ', config.port); 
 }); 
