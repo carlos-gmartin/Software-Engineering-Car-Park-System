@@ -419,7 +419,7 @@ app.post('/createGridButton', function(req, res){
 // Send grid size to user interface for generation.
 app.post('/getGridSize', urlencodedParser, function(req,res){
 	var gridSize = [];
-	console.log("Grid Size req.body.name: " + req.body.name);
+	//console.log("Grid Size req.body.name: " + req.body.name);
 	var CarParkDatabase = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const CarParkDatabaseLines = CarParkDatabase.split(/\r?\n/);
 	var found;
@@ -500,25 +500,6 @@ app.post('/getBookings', urlencodedParser, function(req, res) {
 		}
 	});
 	res.send(JSON.stringify(SpaceArray));
-	/*const spaceData = fs.readFileSync('spaceDatabase.json', 'UTF-8');
-	const lines = spaceData.split(/\r?\n/);
-	const senderArray = [];
-	counter = 0;
-	var sortedDatabase = sortSpaceDatabase();
-	sortedDatabase.forEach((line) => {
-		if(line.reserved == "true") {
-			senderArray.push(1);
-		} else if (line.reserved == "false") {
-			senderArray.push(2);
-		} else if (line.reserved == "road") {
-			senderArray.push(3);
-		}
-		else{
-			senderArray.push(4);
-		}
-	});
-	res.send(JSON.stringify(senderArray));
-	*/
 });
 
 // Sort server grid.
@@ -551,81 +532,43 @@ function sortSpaceDatabase(senderArray) {
 // book a space
 
 app.post('/bookSpace', function(req, res){
-	var path = 'CarParkDatabase.json';
 	console.log("Book Space active!");
 	const spaceData = fs.readFileSync('CarParkDatabase.json', 'UTF-8');
 	const lines = spaceData.split(/\r?\n/);
-	fs.writeFile(path, "", function(err, result) {
+	fs.writeFileSync('CarParkDatabase.json', "", function(err, result) {
 		console.log("Cleared spaceDatabase");
 		if(err) console.log('error', err);
 	});
-	//console.log(lines);
-	lines.forEach((line) => {
-		console.log(line);
-	});
 	lines.forEach((line) => {
 		var temp = [];
-		console.log(line);
-		if(line.length > 5)
+		//console.log(line);
+		console.log("Length = " + lines.length);
+		// HOLY CODE V2
+		if(line.length > 5){
 			// console.log("Line: " + line);
 			Replaceline = line.replace(/\r?\n|\r/g, "");
-			console.log(Replaceline);
+			//console.log(Replaceline);
 			var DatabaseLine = JSON.parse(Replaceline);
 			//console.log(req.body.name == DatabaseLine.name);
 			if (req.body.name == DatabaseLine.name) {
-				//console.log("LINE ===== " + DatabaseLine);
-				//console.log("DatabaseLine.length = " + DatabaseLine.length);
-				//if (DatabaseLine.length > 0)
-				//{
-					//var JSONline = JSON.parse(DatabaseLine.spaceArray);
-					// Find space in database.
-					//console.log("DatabaseLine.spaceArray.length = " + DatabaseLine.spaceArray.length);
-
 					DatabaseLine.spaceArray.forEach((currentSpace) => {
-
-						// console.log(" i < DatabaseLine.spaceArray.length = " + currentSpace < DatabaseLine.spaceArray.length);
-						// console.log(currentSpace);
-						// console.log("req.body.positionX = " + req.body.positionX);
-						// console.log("DatabaseLine.spaceArray[i].positionX = " + DatabaseLine.spaceArray.positionX);
-						// console.log(" req.body.positionX == DatabaseLine.spaceArray[i].positionX " + req.body.positionX == DatabaseLine.spaceArray.positionX);
 						if(req.body.positionX == currentSpace.positionX) {
-							console.log("X Equals");
+							//console.log("X Equals");
 							if(req.body.positionY == currentSpace.positionY) {
-								console.log("Found Reserved Space!");
+								//console.log("Found Reserved Space!");
 								//edit the server file
-								console.log("Before : " + currentSpace.reserved);
+								//console.log("Before : " + currentSpace.reserved);
 								currentSpace.reserved = 'true';
-								console.log("After : " + currentSpace.reserved);
+								currentSpace.timing = req.body.timing;
+								//console.log("After : " + currentSpace.reserved);
 							}
 						}
-						updatedSpace = JSON.stringify(currentSpace);
+						updatedSpace = currentSpace;
 						//console.log("current space: " + updatedSpace);
 						temp.push(updatedSpace);
 						//console.log("ARRAY HERE " + temp);
 					});
 				}
-			// HOLY GRAIL CODE
-			console.log(temp);
-			var updatedTemp = JSON.stringify(temp);
-			var parsedArray = JSON.parse(updatedTemp);
-			console.log(parsedArray);
-			var concatSpaceArray = '';
-			//console.log("PARSED ARRAY : " + JSON.parse(updatedTemp));
-
-			// //console.log("Adding parsed array");
-			// appendToFile('spaceDatabase.json', "[" + parsedArray[0] + ",");
-			concatSpaceArray = concatSpaceArray + "[" + parsedArray[0] + ',';
-			for(var i = 1; i < parsedArray.length - 2; i++){
-				//appendToFile('spaceDatabase.json', parsedArray[i] + ",");
-				concatSpaceArray = concatSpaceArray + parsedArray[i] + ',';
-			}
-			//appendToFile('spaceDatabase.json', parsedArray[parsedArray.length - 1] + "]");
-			concatSpaceArray = concatSpaceArray + parsedArray[parsedArray.length - 1] + "]";
-			console.log(concatSpaceArray);
-			concatSpaceArray = JSON.parse(concatSpaceArray);
-			//console.log(concatSpaceArray);
-			//updatedData = updatedData.replace(/\r?\n|\r/g, "");
-
 			if (req.body.name == DatabaseLine.name) {
 				var newCarPark = {
 					"name": DatabaseLine.name,
@@ -633,31 +576,50 @@ app.post('/bookSpace', function(req, res){
 					"columns" : DatabaseLine.columns,
 					"longitude": DatabaseLine.longitude,
 					"latitude": DatabaseLine.latitude,
-					"spaceArray": concatSpaceArray
+					"spaceArray": temp
 				};
-				appendToFile(path, JSON.stringify(newCarPark) + "\n");
+				appendToFile('CarParkDatabase.json', JSON.stringify(newCarPark) + "\n");
 			} else {
-				console.log("NOT THIS ONE: " + DatabaseLine);
-				appendToFile(path, JSON.stringify(DatabaseLine) + "\n");
+				//console.log("NOT THIS ONE: " + DatabaseLine);
+				appendToFile('CarParkDatabase.json', JSON.stringify(DatabaseLine) + "\n");
 			}
+		}
 	});
-	//temp = null;
+	// Send to admin interface user request.
+	sess=req.session;
+	var newRequest = {
+		"name": sess.userid,
+		"carParkName": req.body.name,
+		"positionX": req.body.positionX,
+		"positionY" : req.body.positionY,
+		"timing": req.body.timing,
+	};
+	// Write out to the bookings.json file.
+	fs.appendFileSync('bookings.json', JSON.stringify(newRequest) + "\n", function(err, result) {
+		if(err) console.log('error', err);
+	});
+
 	sendArray = [];
 	sendArray.push(req.body.positionX);
 	sendArray.push(req.body.positionY);
 	res.send(JSON.stringify(sendArray));
 });
 
-
-//function to delete files
-function deleteFiles(path){
-	fs.writeFile(path, "", function(err, result) {
-		console.log("Cleared spaceDatabase");
-		if(err) console.log('error', err);
-	});
-}
-
-
+app.get('/getUserRequests', urlencodedParser, function(req, res) {
+    const userRequests = fs.readFileSync('bookings.json', 'UTF-8');
+    const lines = userRequests.split(/\r?\n/);
+    var requestsArray = [];
+    lines.forEach(function(line) {
+        if(line) {
+            line = line.replace(/\r?\n|\r/g, "");
+            // console.log(line);
+            var JSONrequest = JSON.parse(line);
+            requestsArray.push(JSONrequest);
+            }
+    
+        });
+        res.send(requestsArray);
+  
 // function to return space information.
 function findSpace(positionX, positionY, CarParkName){
 	const DatabaseData = fs.readFileSync("CarParkDataBase.json", 'UTF-8');
