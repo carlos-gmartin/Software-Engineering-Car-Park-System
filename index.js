@@ -619,6 +619,7 @@ app.get('/getUserRequests', urlencodedParser, function(req, res) {
     
         });
         res.send(requestsArray);
+});
   
 // function to return space information.
 function findSpace(positionX, positionY, CarParkName){
