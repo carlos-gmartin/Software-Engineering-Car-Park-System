@@ -71,7 +71,7 @@ function draw() {
           } else if (returnedArray[counter] == 3) {
             fill("black");
             rect(cellSize * x, cellSize * y, cellSize, cellSize);
-            //fill("white");
+            fill("white");
             text(`x:${x} y:${y}`, cellSize * x + 15, cellSize * y + 15);
             //console.log("Making black square!");
           } else {
@@ -101,7 +101,7 @@ async function getGridSize(name){
       gridSizeLocal = gridSize;     
     }
   })
-  console.log(gridSizeLocal);
+  //console.log(gridSizeLocal);
   return gridSizeLocal;
 }
 
@@ -152,14 +152,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
     window.location = "/Login";
   });
   // Get currently logged in user balance.
-  gatherBalance();
+  //gatherBalance();
 
   document.getElementById('reserve').addEventListener("click", function(){ 
     do{
       var positionX = parseInt(window.prompt("Please enter position X : "), 10);
       var positionY = parseInt(window.prompt("Please enter position Y : "), 10);
+      var timing = parseInt(window.prompt("Please enter the timing : "), 10);
     }
-    while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols);
+    while(isNaN(positionX) && positionX >= 0 && isNaN(positionY) && positionY >= 0 && positionX <= rows && positionY <= cols && isNaN(timing) && timing >= 0);
+
     $.ajax({
       url: '/gatherSpaceInformation',
       type: "POST",
@@ -186,11 +188,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
                     name: NameOfGrid,
                     positionX: spaceInfo[0],
                     positionY: spaceInfo[1],
+                    timing: timing,
                 },
                 dataType: "json",
                 success: function(response) {
                     alert("Booked position: " + response[0] + ":" + response[1]);
-                    gatherBalance();
                     // Update grid size.
                 }
               });
@@ -207,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 var space;
 function gatherSpace(positionX, positionY, url){
-  console.log(NameOfGrid);
+  //console.log(NameOfGrid);
   $.ajax({
     url: url,
     type: "POST",
@@ -240,7 +242,7 @@ function getCarParks() {
           document.getElementById(CarParksArray[index]).addEventListener("click", function(event) {
             NameOfGrid = event.target.id
             setup(NameOfGrid);
-            console.log(NameOfGrid);
+            //console.log(NameOfGrid);
           });      
         }
       }
@@ -252,6 +254,7 @@ $(document).ready(function(){
   $("carParkSelect").change(function(){
       var NameOfGrid = $(this).children("option:selected").val();
       console.log(NameOfGrid);
+      gatherBalance();
   });
 });
 
@@ -269,20 +272,54 @@ function gatherBalance(){
   });
 }
 
-
-/*$document.ready(function() {
-  $.ajax({
-    url: "/getCarParkDropdown",
-    type: "GET",
-    dataType: "json",
-    success: function(carParks) {
-      for (var index = 0; index <= carParks.length; index++){
-        $('#carParkSelect').append('<option value ="' + data[index] + '">' + data[index] + '</option>');
+// Adding balance to user
+document.addEventListener("DOMContentLoaded", function(event) { 
+  document.getElementById('addmoney').addEventListener("click", function() {
+      do{
+          var addToBalance = parseFloat(window.prompt("How much would you like to add? " + "£: "), 10);
       }
-      console.log(carParks);
-    }
-  })
+      while(isNaN(Number.isInteger(addToBalance*100) + addToBalance > 0.01 || addToBalance <= 1000));
 
-}); */
+      var result = window.confirm("Are you sure you want to add £" + balance + "to your balance?");
+      if(result == true){
+
+        $.ajax({
+          url: "/getBalance",
+          type: "GET",
+          dataType: "json",
+          success: function(balance) {
+            userBalance = balance+addToBalance;
+            sess = req.session;
+          }
+        });
+      }
+      else{
+          alert("Transaction was cancelled.");
+      }
+  });
+});
+
+// Location gathering GPS
+function sendGeolocation(position) {
+  var GPSFormat = {
+    "Latitude": position.coords.latitude,
+    "Longitude": position.coords.longitude
+  }
+  $.ajax({
+    url: "/GPS",
+    type: "POST",
+    data: GPSFormat,
+    dataType: "json",
+    success: function(returnedStatement) {
+      console.log(returnedStatement);
+    },
+    error: function(xhr, status, err) {
+      alert("Error can't connect to server");
+    }
+  });
+  console.log("Latitude: " + position.coords.latitude);
+  console.log("Longitude: " + position.coords.longitude);
+}
+
 
 
