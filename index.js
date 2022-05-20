@@ -529,14 +529,6 @@ app.post('/bookSpace', function(req, res){
 			var DatabaseLine = JSON.parse(Replaceline);
 			//console.log(req.body.name == DatabaseLine.name);
 			if (req.body.name == DatabaseLine.name) {
-				//console.log("LINE ===== " + DatabaseLine);
-				//console.log("DatabaseLine.length = " + DatabaseLine.length);
-				//if (DatabaseLine.length > 0)
-				//{
-					//var JSONline = JSON.parse(DatabaseLine.spaceArray);
-					// Find space in database.
-					//console.log("DatabaseLine.spaceArray.length = " + DatabaseLine.spaceArray.length);
-
 					DatabaseLine.spaceArray.forEach((currentSpace) => {
 						if(req.body.positionX == currentSpace.positionX) {
 							//console.log("X Equals");
@@ -555,7 +547,6 @@ app.post('/bookSpace', function(req, res){
 						//console.log("ARRAY HERE " + temp);
 					});
 				}
-			// HOLY GRAIL CODE ----- DO NOT TOUCH!
 			if (req.body.name == DatabaseLine.name) {
 				var newCarPark = {
 					"name": DatabaseLine.name,
